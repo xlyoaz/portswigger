@@ -92,15 +92,19 @@ class PortSwiggerPlanExtractor:
                     resp = self.session.get(redirect_url, allow_redirects=True, timeout=10)
 
             print(f"    [DEBUG] Final: {resp.status_code}, Cookies: {len(self.session.cookies)}")
+            print(f"    [DEBUG] Final URL: {resp.url[:150]}")
 
             # Check for OAuth errors
             if "error=" in resp.url:
+                print(f"    [DEBUG] Error in URL: {resp.url}")
                 return False
 
             # Success check
             if len(self.session.cookies) > 0:
+                print(f"    [DEBUG] Login success - cookies present")
                 return True
 
+            print(f"    [DEBUG] Login failed - no cookies")
             return False
 
         except Exception as e:
