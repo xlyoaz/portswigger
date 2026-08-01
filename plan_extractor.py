@@ -81,14 +81,9 @@ class PortSwiggerPlanExtractor:
             print(f"    [DEBUG] Login URL: {resp.url}")
             print(f"    [DEBUG] Cookies: {len(self.session.cookies)}")
 
-            # Debug: show response snippet
-            response_snippet = resp.text[:500] if len(resp.text) > 500 else resp.text
-            if "error" in resp.text.lower():
-                print(f"    [DEBUG] Response contains 'error': {response_snippet}")
-
-            # Check if we got error page
-            if "error=" in resp.url or "error" in resp.text.lower():
-                print(f"    [✗] OAuth error detected in response")
+            # Check if we got redirected to error page (error= in URL)
+            if "error=" in resp.url:
+                print(f"    [✗] OAuth error in URL: {resp.url[:200]}")
                 return False
 
             # Check if login successful
