@@ -78,10 +78,20 @@ class PortSwiggerPlanExtractor:
             )
 
             print(f"    [DEBUG] Login step status: {resp.status_code}")
+            print(f"    [DEBUG] Login URL: {resp.url}")
             print(f"    [DEBUG] Cookies: {len(self.session.cookies)}")
 
             # Check if we got error page
             if "error=" in resp.url or "error=" in resp.text:
+                # Extract error message
+                if "error_description=" in resp.url:
+                    error_start = resp.url.find("error_description=") + len("error_description=")
+                    error_end = resp.url.find("&", error_start)
+                    if error_end == -1:
+                        error_msg = resp.url[error_start:]
+                    else:
+                        error_msg = resp.url[error_start:error_end]
+                    print(f"    [DEBUG] Error: {error_msg[:100]}")
                 print(f"    [✗] OAuth error detected")
                 return False
 
