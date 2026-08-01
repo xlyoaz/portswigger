@@ -80,10 +80,8 @@ class PortSwiggerPlanExtractor:
     def extract_plan(self, username):
         """Extract plan from /users/{username}/licenses endpoint"""
         try:
-            # Remove domain if present for endpoint
-            user_part = username.split("@")[0] if "@" in username else username
-
-            url = f"{self.plan_base_url}/users/{user_part}/licenses"
+            # Use full username/email as-is
+            url = f"{self.plan_base_url}/users/{username}/licenses"
 
             resp = self.session.get(
                 url,
