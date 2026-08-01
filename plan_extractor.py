@@ -63,16 +63,26 @@ class PortSwiggerPlanExtractor:
             print(f"    [DEBUG] Auth step: {resp.status_code}")
 
             # Follow redirect if needed (handle relative URLs)
+            state = ""
             if resp.status_code in [301, 302, 303, 307, 308]:
                 redirect_url = resp.headers.get('Location', '')
                 if redirect_url:
                     if not redirect_url.startswith('http'):
                         redirect_url = urljoin(self.base_url + '/', redirect_url)
-                    print(f"    [DEBUG] Following auth redirect")
+                    # Extract state from redirect URL
+                    if 'state=' in redirect_url:
+                        from urllib.parse import parse_qs, urlparse
+                        parsed = parse_qs(urlparse(redirect_url).query)
+                        if 'state' in parsed:
+                            state = parsed['state'][0]
+                    print(f"    [DEBUG] Following auth redirect (state={state[:20] if state else 'none'}...)")
                     resp = self.session.get(redirect_url, allow_redirects=False, timeout=10)
 
             # Step 2: Login POST
             login_url = f"{self.base_url}/u/login"
+            if state:
+                login_url = f"{login_url}?state={state}"
+
             login_data = {
                 "username": username,
                 "password": password,
