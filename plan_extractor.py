@@ -132,6 +132,9 @@ class PortSwiggerPlanExtractor:
                 f"{self.plan_base_url}/api/subscription",
                 f"{self.plan_base_url}/api/user/plan",
                 f"{self.plan_base_url}/account/plan",
+                f"{self.plan_base_url}/subscriptions",
+                f"{self.plan_base_url}/account/subscriptions",
+                f"{self.plan_base_url}/user/subscriptions",
             ]
 
             for url in endpoints:
