@@ -56,23 +56,22 @@ class PortSwiggerPlanExtractor:
     def login(self, username, password):
         """Authenticate user and return session"""
         try:
-            # Step 1: Initial auth request WITHOUT following redirects (preserve session)
+            # Step 1: Initial auth request
             auth_url = f"{self.base_url}/authorize?client_id=F1PNGMosqeuuNO5cKQzDesrY2XzvPWGz&redirect_uri=https://portswigger.net/signin-oidc&response_type=code&scope=openid+profile+email&code_challenge=BldXYnkHHNxMQttliGBK-tWU16bEzTbKyUsr9WnArgk&code_challenge_method=S256&response_mode=query"
 
             resp = self.session.get(auth_url, allow_redirects=False, timeout=10)
-            print(f"    [DEBUG] Auth step status: {resp.status_code}")
+            print(f"    [DEBUG] Auth step: {resp.status_code}")
 
-            # If redirect, follow it to establish session
+            # Follow redirect if needed (handle relative URLs)
             if resp.status_code in [301, 302, 303, 307, 308]:
-                redirect_url = resp.headers.get('Location')
+                redirect_url = resp.headers.get('Location', '')
                 if redirect_url:
-                    # Handle relative URLs
                     if not redirect_url.startswith('http'):
-                        redirect_url = f"{self.base_url}{redirect_url}"
-                    print(f"    [DEBUG] Following redirect to login page")
+                        redirect_url = self.base_url + redirect_url
+                    print(f"    [DEBUG] Following auth redirect")
                     resp = self.session.get(redirect_url, allow_redirects=False, timeout=10)
 
-            # Step 2: Login POST - maintain session from authorize step
+            # Step 2: Login POST
             login_url = f"{self.base_url}/u/login"
             login_data = {
                 "username": username,
@@ -80,43 +79,32 @@ class PortSwiggerPlanExtractor:
                 "action": "default"
             }
 
-            resp = self.session.post(
-                login_url,
-                data=login_data,
-                allow_redirects=False,
-                timeout=10
-            )
+            resp = self.session.post(login_url, data=login_data, allow_redirects=False, timeout=10)
+            print(f"    [DEBUG] Login step: {resp.status_code}")
 
-            print(f"    [DEBUG] Login step status: {resp.status_code}")
-
-            # Step 3: Follow post-login redirect (should get code or success page)
+            # Follow post-login redirect (handle relative URLs)
             if resp.status_code in [301, 302, 303, 307, 308]:
-                redirect_url = resp.headers.get('Location')
-                print(f"    [DEBUG] Login redirect URL: {redirect_url[:100] if redirect_url else 'None'}")
-
+                redirect_url = resp.headers.get('Location', '')
                 if redirect_url:
-                    # Handle relative URLs
                     if not redirect_url.startswith('http'):
-                        redirect_url = f"{self.plan_base_url}{redirect_url}"
+                        redirect_url = self.base_url + redirect_url
+                    print(f"    [DEBUG] Following login redirect")
                     resp = self.session.get(redirect_url, allow_redirects=True, timeout=10)
-                    print(f"    [DEBUG] Final status: {resp.status_code}")
 
-            print(f"    [DEBUG] Cookies: {len(self.session.cookies)}")
+            print(f"    [DEBUG] Final: {resp.status_code}, Cookies: {len(self.session.cookies)}")
 
-            # Check if we got error page
+            # Check for OAuth errors
             if "error=" in resp.url:
-                print(f"    [✗] OAuth error: {resp.url[:150]}")
                 return False
 
-            # Success if we have cookies and no error
-            if len(self.session.cookies) > 0 and "error" not in resp.url.lower():
-                print(f"    [✓] Login başarılı")
+            # Success check
+            if len(self.session.cookies) > 0:
                 return True
 
             return False
 
         except Exception as e:
-            print(f"    [✗] Login hatası: {str(e)}")
+            print(f"    [✗] Error: {str(e)}")
             return False
 
     def extract_plan(self, username):
