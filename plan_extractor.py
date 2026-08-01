@@ -67,7 +67,7 @@ class PortSwiggerPlanExtractor:
                 redirect_url = resp.headers.get('Location', '')
                 if redirect_url:
                     if not redirect_url.startswith('http'):
-                        redirect_url = self.base_url + redirect_url
+                        redirect_url = urljoin(self.base_url + '/', redirect_url)
                     print(f"    [DEBUG] Following auth redirect")
                     resp = self.session.get(redirect_url, allow_redirects=False, timeout=10)
 
@@ -87,7 +87,7 @@ class PortSwiggerPlanExtractor:
                 redirect_url = resp.headers.get('Location', '')
                 if redirect_url:
                     if not redirect_url.startswith('http'):
-                        redirect_url = self.base_url + redirect_url
+                        redirect_url = urljoin(self.base_url + '/', redirect_url)
                     print(f"    [DEBUG] Following login redirect")
                     resp = self.session.get(redirect_url, allow_redirects=True, timeout=10)
 
