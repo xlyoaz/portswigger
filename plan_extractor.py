@@ -56,13 +56,20 @@ class PortSwiggerPlanExtractor:
     def login(self, username, password):
         """Authenticate user and return session"""
         try:
-            # Step 1: Initial auth request to establish session
+            # Step 1: Initial auth request WITHOUT following redirects (preserve session)
             auth_url = f"{self.base_url}/authorize?client_id=F1PNGMosqeuuNO5cKQzDesrY2XzvPWGz&redirect_uri=https://portswigger.net/signin-oidc&response_type=code&scope=openid+profile+email&code_challenge=BldXYnkHHNxMQttliGBK-tWU16bEzTbKyUsr9WnArgk&code_challenge_method=S256&response_mode=query"
 
-            resp = self.session.get(auth_url, allow_redirects=True, timeout=10)
+            resp = self.session.get(auth_url, allow_redirects=False, timeout=10)
             print(f"    [DEBUG] Auth step status: {resp.status_code}")
 
-            # Step 2: Login POST
+            # If redirect, follow it to establish session
+            if resp.status_code in [301, 302, 303, 307, 308]:
+                redirect_url = resp.headers.get('Location')
+                if redirect_url:
+                    print(f"    [DEBUG] Following redirect to login page")
+                    resp = self.session.get(redirect_url, allow_redirects=False, timeout=10)
+
+            # Step 2: Login POST - maintain session from authorize step
             login_url = f"{self.base_url}/u/login"
             login_data = {
                 "username": username,
@@ -73,22 +80,33 @@ class PortSwiggerPlanExtractor:
             resp = self.session.post(
                 login_url,
                 data=login_data,
-                allow_redirects=True,
+                allow_redirects=False,
                 timeout=10
             )
 
             print(f"    [DEBUG] Login step status: {resp.status_code}")
-            print(f"    [DEBUG] Login URL: {resp.url}")
+
+            # Step 3: Follow post-login redirect (should get code or success page)
+            if resp.status_code in [301, 302, 303, 307, 308]:
+                redirect_url = resp.headers.get('Location')
+                print(f"    [DEBUG] Login redirect URL: {redirect_url[:100] if redirect_url else 'None'}")
+
+                if redirect_url:
+                    resp = self.session.get(redirect_url, allow_redirects=True, timeout=10)
+                    print(f"    [DEBUG] Final status: {resp.status_code}")
+
             print(f"    [DEBUG] Cookies: {len(self.session.cookies)}")
 
-            # Check if we got redirected to error page (error= in URL)
+            # Check if we got error page
             if "error=" in resp.url:
-                print(f"    [✗] OAuth error in URL: {resp.url[:200]}")
+                print(f"    [✗] OAuth error: {resp.url[:150]}")
                 return False
 
-            # Check if login successful
-            if len(self.session.cookies) > 0:
+            # Success if we have cookies and no error
+            if len(self.session.cookies) > 0 and "error" not in resp.url.lower():
+                print(f"    [✓] Login başarılı")
                 return True
+
             return False
 
         except Exception as e:
