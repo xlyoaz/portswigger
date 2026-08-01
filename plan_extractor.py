@@ -271,7 +271,7 @@ class PortSwiggerPlanExtractor:
 
 if __name__ == "__main__":
     # HTTP proxy configuration
-    proxy_url = "http://buymobileproxy:mugla9392@ankara8.buymobileproxy.com:8029"
+    proxy_url = "http://buymobileproxycom:mugla9392@ankara8.buymobileproxy.com:8029"
 
     extractor = PortSwiggerPlanExtractor("log.txt", proxy_url=proxy_url)
 
