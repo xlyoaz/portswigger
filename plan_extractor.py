@@ -270,8 +270,8 @@ class PortSwiggerPlanExtractor:
         return True
 
 if __name__ == "__main__":
-    # SOCKS5 proxy configuration
-    proxy_url = "socks5://buymobileproxy:mugla9392@ankara8.buymobileproxy.com:8129"
+    # HTTP proxy configuration
+    proxy_url = "http://buymobileproxy:mugla9392@ankara8.buymobileproxy.com:8029"
 
     extractor = PortSwiggerPlanExtractor("log.txt", proxy_url=proxy_url)
 
