@@ -14,7 +14,7 @@ from urllib.parse import urljoin
 from datetime import datetime
 
 class PortSwiggerPlanExtractor:
-    def __init__(self, log_file="log.txt"):
+    def __init__(self, log_file="log.txt", proxy_url=None):
         self.log_file = log_file
         self.base_url = "https://login.portswigger.net"
         self.plan_base_url = "https://portswigger.net"
@@ -24,6 +24,14 @@ class PortSwiggerPlanExtractor:
         self.session.headers.update({
             'User-Agent': 'PortSwigger-Plan-Extractor/1.0'
         })
+
+        # Configure proxy if provided
+        if proxy_url:
+            self.session.proxies.update({
+                'http': proxy_url,
+                'https': proxy_url
+            })
+            print(f"[✓] Proxy ayarlandı: {proxy_url.split('@')[1] if '@' in proxy_url else proxy_url}")
 
     def read_credentials(self):
         """Read credentials from log.txt"""
@@ -262,7 +270,10 @@ class PortSwiggerPlanExtractor:
         return True
 
 if __name__ == "__main__":
-    extractor = PortSwiggerPlanExtractor("log.txt")
+    # SOCKS5 proxy configuration
+    proxy_url = "socks5://buymobileproxy:mugla9392@ankara8.buymobileproxy.com:8129"
+
+    extractor = PortSwiggerPlanExtractor("log.txt", proxy_url=proxy_url)
 
     # Ask how many accounts to process
     try:
