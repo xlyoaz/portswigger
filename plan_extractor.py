@@ -66,6 +66,9 @@ class PortSwiggerPlanExtractor:
             if resp.status_code in [301, 302, 303, 307, 308]:
                 redirect_url = resp.headers.get('Location')
                 if redirect_url:
+                    # Handle relative URLs
+                    if not redirect_url.startswith('http'):
+                        redirect_url = f"{self.base_url}{redirect_url}"
                     print(f"    [DEBUG] Following redirect to login page")
                     resp = self.session.get(redirect_url, allow_redirects=False, timeout=10)
 
@@ -92,6 +95,9 @@ class PortSwiggerPlanExtractor:
                 print(f"    [DEBUG] Login redirect URL: {redirect_url[:100] if redirect_url else 'None'}")
 
                 if redirect_url:
+                    # Handle relative URLs
+                    if not redirect_url.startswith('http'):
+                        redirect_url = f"{self.plan_base_url}{redirect_url}"
                     resp = self.session.get(redirect_url, allow_redirects=True, timeout=10)
                     print(f"    [DEBUG] Final status: {resp.status_code}")
 
