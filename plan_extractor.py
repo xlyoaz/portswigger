@@ -88,23 +88,37 @@ class PortSwiggerPlanExtractor:
     def extract_plan(self, username):
         """Extract plan from /users/{username}/licenses endpoint"""
         try:
-            # Use full username/email as-is
-            url = f"{self.plan_base_url}/users/{username}/licenses"
+            endpoints = [
+                f"{self.plan_base_url}/users/{username}/licenses",
+                f"{self.plan_base_url}/user/{username}/licenses",
+                f"{self.plan_base_url}/users/{username.split('@')[0]}/licenses",
+                f"{self.plan_base_url}/api/users/{username}/licenses",
+                f"{self.plan_base_url}/api/subscription",
+                f"{self.plan_base_url}/api/user/plan",
+                f"{self.plan_base_url}/account/plan",
+            ]
 
-            resp = self.session.get(
-                url,
-                headers={"Accept": "application/json"},
-                allow_redirects=True,
-                timeout=10
-            )
-
-            if resp.status_code == 200:
+            for url in endpoints:
                 try:
-                    return resp.json()
-                except:
-                    return resp.text
-            else:
-                return f"HTTP {resp.status_code}"
+                    resp = self.session.get(
+                        url,
+                        headers={"Accept": "application/json"},
+                        allow_redirects=True,
+                        timeout=10
+                    )
+
+                    if resp.status_code == 200:
+                        print(f"      [FOUND] {url}")
+                        try:
+                            return resp.json()
+                        except:
+                            return resp.text
+                    else:
+                        print(f"      {url} -> {resp.status_code}")
+                except Exception as e:
+                    pass
+
+            return f"HTTP 404 - all endpoints failed"
 
         except Exception as e:
             return f"Error: {str(e)}"
