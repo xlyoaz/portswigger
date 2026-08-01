@@ -56,12 +56,13 @@ class PortSwiggerPlanExtractor:
     def login(self, username, password):
         """Authenticate user and return session"""
         try:
-            # OAuth flow
+            # Step 1: Initial auth request to establish session
             auth_url = f"{self.base_url}/authorize?client_id=F1PNGMosqeuuNO5cKQzDesrY2XzvPWGz&redirect_uri=https://portswigger.net/signin-oidc&response_type=code&scope=openid+profile+email&code_challenge=BldXYnkHHNxMQttliGBK-tWU16bEzTbKyUsr9WnArgk&code_challenge_method=S256&response_mode=query"
 
-            resp = self.session.get(auth_url, allow_redirects=False, timeout=10)
+            resp = self.session.get(auth_url, allow_redirects=True, timeout=10)
+            print(f"    [DEBUG] Auth step status: {resp.status_code}")
 
-            # Login POST
+            # Step 2: Login POST
             login_url = f"{self.base_url}/u/login"
             login_data = {
                 "username": username,
@@ -72,12 +73,20 @@ class PortSwiggerPlanExtractor:
             resp = self.session.post(
                 login_url,
                 data=login_data,
-                allow_redirects=False,
+                allow_redirects=True,
                 timeout=10
             )
 
-            # Check if login successful (cookies should be set)
-            if 'Set-Cookie' in resp.headers or len(self.session.cookies) > 0:
+            print(f"    [DEBUG] Login step status: {resp.status_code}")
+            print(f"    [DEBUG] Cookies: {len(self.session.cookies)}")
+
+            # Check if we got error page
+            if "error=" in resp.url or "error=" in resp.text:
+                print(f"    [✗] OAuth error detected")
+                return False
+
+            # Check if login successful
+            if len(self.session.cookies) > 0:
                 return True
             return False
 
