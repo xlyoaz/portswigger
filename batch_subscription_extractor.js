@@ -29,18 +29,21 @@ let failed = 0;
 // Curl helper
 function curl(url, post = null) {
     try {
-        let cmd = `curl -s -i -x "${PROXY}" "${url}"`;
+        let cmd = `curl -s -i -x "${PROXY}" --connect-timeout 10 --max-time 20 "${url}"`;
         if (post) {
             const data = Object.entries(post).map(([k,v]) => `${k}=${v}`).join('&');
-            cmd = `curl -s -i -x "${PROXY}" -X POST -d "${data}" "${url}"`;
+            cmd = `curl -s -i -x "${PROXY}" --connect-timeout 10 --max-time 20 -X POST -d "${data}" "${url}"`;
         }
-        const output = execSync(cmd, { encoding: 'utf-8', shell: true, maxBuffer: 50*1024*1024, timeout: 30000 });
+        if (DEBUG) console.error(`[DEBUG] Curl: ${cmd.substring(0, 100)}...`);
+        const output = execSync(cmd, { encoding: 'utf-8', shell: true, maxBuffer: 50*1024*1024, timeout: 35000 });
         const parts = output.split('\r\n\r\n');
         const body = parts.slice(1).join('\r\n\r\n');
         const status = parseInt(parts[0].match(/HTTP\/\d\.\d (\d+)/)?.[1] || 0);
         const loc = parts[0].match(/[Ll]ocation:\s*([^\r\n]+)/)?.[1]?.trim();
+        if (DEBUG) console.error(`[DEBUG] Status: ${status}, Body size: ${body.length}`);
         return { status, body, location: loc };
     } catch (e) {
+        if (DEBUG) console.error(`[DEBUG] Curl error: ${e.message.substring(0, 100)}`);
         return { status: 0, body: '', location: null };
     }
 }
@@ -50,6 +53,9 @@ function sleep(ms) {
     const end = Date.now() + ms;
     while (Date.now() < end) {}
 }
+
+// Debug flag
+const DEBUG = process.argv.includes('--debug');
 
 // Process single account
 function processAccount(account) {
@@ -79,20 +85,24 @@ function processAccount(account) {
 
         // Parse subscription
         let plan = 'Unknown';
-        let subscription = 'unknown';
+        let subscription = 'Unknown';
 
-        if (html.includes('You do not have any subscriptions')) {
+        if (!html || html.length < 100) {
+            subscription = 'Error';
+            plan = 'No response';
+        } else if (html.includes('You do not have any subscriptions')) {
             subscription = 'None';
             plan = 'Free/Community';
         } else {
-            if (html.toLowerCase().includes('professional')) plan = 'Professional';
-            else if (html.toLowerCase().includes('team')) plan = 'Team';
-            else if (html.toLowerCase().includes('enterprise')) plan = 'Enterprise';
-            else if (html.toLowerCase().includes('community')) plan = 'Community';
             subscription = 'Active';
+            // Check for plan type (priority order)
+            if (html.toLowerCase().includes('enterprise')) plan = 'Enterprise';
+            else if (html.toLowerCase().includes('team')) plan = 'Team';
+            else if (html.toLowerCase().includes('professional')) plan = 'Professional';
+            else if (html.toLowerCase().includes('community')) plan = 'Community';
         }
 
-        // Extract expiry
+        // Extract expiry dates
         const datePattern = /(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})|(\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2})/g;
         const dates = html.match(datePattern);
         const expiry = dates ? dates[0] : null;
@@ -116,54 +126,97 @@ function processAccount(account) {
     }
 }
 
+// Get start index from args
+const startIdx = process.argv.find(a => a.startsWith('--start='))
+    ? parseInt(process.argv.find(a => a.startsWith('--start=')).split('=')[1])
+    : 0;
+
 // Process all accounts
-console.log('[*] Starting batch extraction...\n');
-console.log('Progress: ', '');
+console.log(`[*] Starting batch extraction (${accounts.length} accounts)...\n`);
+if (startIdx > 0) console.log(`[*] Resuming from account ${startIdx}\n`);
 
-for (let i = 0; i < accounts.length; i++) {
-    const result = processAccount(accounts[i]);
-    results.push(result);
+const startTime = Date.now();
+for (let i = startIdx; i < accounts.length; i++) {
+    const account = accounts[i];
+    try {
+        const result = processAccount(account);
+        results.push(result);
 
-    if (result.status === 'OK') processed++;
-    else failed++;
+        if (result.status === 'OK') processed++;
+        else failed++;
 
-    // Progress indicator
-    if ((i + 1) % 10 === 0) {
-        process.stdout.write(`${i + 1}/${accounts.length} `);
+        // Progress indicator every 10 accounts
+        if ((i + 1) % 10 === 0) {
+            const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+            const rate = (i + 1 - startIdx) / (elapsed / 60);
+            process.stdout.write(`\r[${i + 1}/${accounts.length}] OK: ${processed}, Failed: ${failed} | ${rate.toFixed(1)} accts/min`);
+        }
+    } catch (e) {
+        if (DEBUG) console.error(`\n[ERROR] Account ${i}: ${e.message.substring(0, 100)}`);
+        results.push({
+            username: account.username,
+            plan: 'Unknown',
+            subscription: 'Error',
+            expiry: null,
+            status: 'ERROR: ' + e.message.substring(0, 50)
+        });
+        failed++;
     }
 
     sleep(DELAY); // Rate limiting
 }
 
-console.log(`\n\n[✓] Completed: ${processed} OK, ${failed} Failed\n`);
+const totalTime = ((Date.now() - startTime) / 1000).toFixed(1);
+console.log(`\n\n[✓] Completed in ${totalTime}s: ${processed} OK, ${failed} Failed\n`);
 
-// Export JSON
+// Export JSON with timestamp
+const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+const jsonFile = `batch_results_${timestamp}.json`;
+fs.writeFileSync(jsonFile, JSON.stringify(results, null, 2));
+console.log(`[✓] Exported: ${jsonFile}`);
+
+// Also export to batch_results.json (latest)
 fs.writeFileSync('batch_results.json', JSON.stringify(results, null, 2));
-console.log('[✓] Exported: batch_results.json');
+console.log('[✓] Exported: batch_results.json (latest)');
 
-// Export CSV
+// Export CSV with timestamp
+const csvFile = `batch_results_${timestamp}.csv`;
 const csv = [
     'Username,Plan,Subscription,Expiry,Status',
-    ...results.map(r => `"${r.username}","${r.plan}","${r.subscription}","${r.expiry || ''}","${r.status}"`)
+    ...results.map(r => `"${r.username.replace(/"/g, '""')}","${r.plan}","${r.subscription}","${r.expiry || ''}","${r.status}"`)
 ].join('\n');
+fs.writeFileSync(csvFile, csv);
+console.log(`[✓] Exported: ${csvFile}`);
 
+// Also export to batch_results.csv (latest)
 fs.writeFileSync('batch_results.csv', csv);
-console.log('[✓] Exported: batch_results.csv');
+console.log('[✓] Exported: batch_results.csv (latest)');
 
 // Summary
 console.log('\n[=] SUMMARY [=]');
 console.log('='.repeat(60));
 
 const byPlan = {};
+const byStatus = {};
 results.forEach(r => {
     byPlan[r.plan] = (byPlan[r.plan] || 0) + 1;
+    byStatus[r.subscription] = (byStatus[r.subscription] || 0) + 1;
 });
 
-Object.entries(byPlan).forEach(([plan, count]) => {
-    console.log(`${plan}: ${count}`);
+console.log('\nBy Plan:');
+Object.entries(byPlan).sort((a, b) => b[1] - a[1]).forEach(([plan, count]) => {
+    const pct = ((count / results.length) * 100).toFixed(1);
+    console.log(`  ${plan.padEnd(15)}: ${count.toString().padStart(3)} (${pct}%)`);
+});
+
+console.log('\nBy Status:');
+Object.entries(byStatus).sort((a, b) => b[1] - a[1]).forEach(([status, count]) => {
+    const pct = ((count / results.length) * 100).toFixed(1);
+    console.log(`  ${status.padEnd(15)}: ${count.toString().padStart(3)} (${pct}%)`);
 });
 
 console.log('='.repeat(60));
 console.log(`\nTotal accounts: ${results.length}`);
-console.log(`Successful: ${processed}`);
-console.log(`Failed: ${failed}`);
+console.log(`Successful: ${processed} (${((processed/results.length)*100).toFixed(1)}%)`);
+console.log(`Failed: ${failed} (${((failed/results.length)*100).toFixed(1)}%)`);
+console.log(`Time: ${totalTime}s`);
