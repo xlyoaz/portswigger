@@ -41,9 +41,13 @@ try:
         print("[3] Submitting login...")
         page.click('button[type="submit"]')
 
-        # Wait for redirect after login
+        # Wait for OAuth callback redirect
         page.wait_for_url("https://portswigger.net/**", timeout=30000)
-        print(f"[✓] Login successful - Redirected to: {page.url}\n")
+        print(f"[✓] Login redirect: {page.url}")
+
+        # Wait for page to fully load
+        page.wait_for_load_state("networkidle", timeout=10000)
+        print(f"[✓] Page loaded - Current URL: {page.url}\n")
 
         # Test /users/ endpoints
         print("[4] Testing /users/ endpoints:")
@@ -58,7 +62,16 @@ try:
         for i, url in enumerate(urls):
             try:
                 print(f"\n[{i}] Testing: {url}")
-                page.goto(url, wait_until="networkidle", timeout=15000)
+                page.goto(url, wait_until="load", timeout=15000)
+
+                # For /users/youraccount, if redirected to OAuth, need to handle it
+                if i == 0 and "authorize" in page.url.lower():
+                    print(f"    ⚠ Redirected to OAuth - trying to complete flow...")
+                    # Go back to portswigger and try again
+                    page.goto("https://portswigger.net", wait_until="load", timeout=10000)
+                    page.wait_for_load_state("networkidle", timeout=5000)
+                    # Try the endpoint again
+                    page.goto(url, wait_until="load", timeout=15000)
 
                 content = page.content()
                 print(f"    Status: 200 (navigated successfully)")
@@ -82,9 +95,9 @@ try:
                     print("    [-] No subscription keywords found")
 
                 # Check if it's an error/redirect
-                if "signin-oidc" in content or "authorize" in content:
-                    print("    ⚠ WARNING: Page contains OAuth redirect")
-                if "404" in content.lower():
+                if "signin-oidc" in content or "authorize" in page.url:
+                    print("    ⚠ WARNING: Not authenticated - redirected to OAuth")
+                if "404" in content.lower() or "404" in page.url:
                     print("    ⚠ WARNING: Page contains 404 error")
 
                 # Save HTML
