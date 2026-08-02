@@ -96,7 +96,22 @@ console.log(`GET https://portswigger.net/users/youraccount/licenses`);
 r = curl('https://portswigger.net/users/youraccount/licenses');
 console.log(`Status: ${r.status}`);
 console.log(`Body size: ${r.body.length} bytes`);
+console.log(`Location header: ${r.location || '(none)'}\n`);
 console.log(`First 150 chars:\n${r.body.substring(0, 150)}\n`);
+
+// If 302, follow the redirect
+if (r.status === 302 && r.location) {
+    console.log('='.repeat(60));
+    console.log('STEP 4b: Following 302 redirect');
+    console.log('='.repeat(60));
+    let redirectUrl = r.location;
+    if (!redirectUrl.startsWith('http')) redirectUrl = 'https://portswigger.net' + redirectUrl;
+    console.log(`GET ${redirectUrl.substring(0, 80)}`);
+    r = curl(redirectUrl);
+    console.log(`Status: ${r.status}`);
+    console.log(`Body size: ${r.body.length} bytes`);
+    console.log(`First 150 chars:\n${r.body.substring(0, 150)}\n`);
+}
 
 // Check what page we got
 if (r.body.includes('You do not have any subscriptions')) {
