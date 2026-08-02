@@ -80,47 +80,72 @@ function sleep(ms) {
 // Debug flag
 const DEBUG = process.argv.includes('--debug');
 
+// Parse response with manual redirect handling
+function parseResponse(output) {
+    const parts = output.split('\r\n\r\n');
+    const headers = parts[0];
+    const body = parts.slice(1).join('\r\n\r\n');
+    const status = parseInt(headers.match(/HTTP\/\d\.\d (\d+)/)?.[1] || 0);
+    const location = headers.match(/[Ll]ocation:\s*([^\r\n]+)/)?.[1]?.trim();
+    return { status, body, location };
+}
+
 // Process single account
 function processAccount(account) {
     const cookieJar = path.join(os.tmpdir(), `portswigger_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.txt`);
 
     try {
-        // Login
+        // Step 1: Get authorize endpoint and extract state
         let r = curl('https://login.portswigger.net/authorize?client_id=F1PNGMosqeuuNO5cKQzDesrY2XzvPWGz&redirect_uri=https://portswigger.net/signin-oidc&response_type=code&scope=openid+profile+email&code_challenge=BldXYnkHHNxMQttliGBK-tWU16bEzTbKyUsr9WnArgk&code_challenge_method=S256&response_mode=query', null, cookieJar);
-        let state = r.location?.match(/state=([^&]+)/)?.[1] || '';
 
-        // If state not in location, try body
+        let state = '';
+        // Try to find state in Location header first
+        if (r.location) {
+            const stateMatch = r.location.match(/state=([^&]+)/);
+            if (stateMatch) state = stateMatch[1];
+        }
+        // If not found, try body
         if (!state) {
             const stateMatch = r.body.match(/state=([^&\s'"]+)/);
             if (stateMatch) state = stateMatch[1];
         }
 
-        // Login with credentials
-        r = curl(`https://login.portswigger.net/u/login${state ? '?state='+state : ''}`, {
+        if (!state) {
+            throw new Error('Failed to extract state parameter');
+        }
+
+        // Step 2: Login with credentials in POST body
+        r = curl('https://login.portswigger.net/u/login', {
             username: account.username,
             password: account.password,
-            action: 'default'
+            action: 'default',
+            state: state
         }, cookieJar);
 
         let url = r.location;
         if (!url) {
-            // Try to find state in body and continue anyway
-            throw new Error('Login failed - no redirect');
+            throw new Error('Login failed - no redirect location');
         }
 
-        // Follow redirects
+        // Step 3: Follow redirect chain manually
         for (let i = 0; i < 15 && url; i++) {
-            if (!url.startsWith('http')) url = 'https://login.portswigger.net' + url;
+            if (!url.startsWith('http')) {
+                url = 'https://login.portswigger.net' + url;
+            }
             r = curl(url, null, cookieJar);
             url = r.location;
-            if (url?.includes('portswigger.net') && !url.includes('login')) break;
+
+            // Exit if we reach portswigger.net (not login subdomain)
+            if (url && url.includes('portswigger.net') && !url.includes('login')) {
+                break;
+            }
         }
 
-        // Get subscription data
+        // Step 4: Get subscription data from my-account page
         r = curl('https://portswigger.net/#/my-account', null, cookieJar);
         const html = r.body;
 
-        // Parse subscription
+        // Step 5: Parse subscription info
         let plan = 'Unknown';
         let subscription = 'Unknown';
 
