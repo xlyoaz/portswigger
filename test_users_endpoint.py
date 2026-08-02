@@ -60,7 +60,9 @@ try:
                 redirect_url = urljoin("https://login.portswigger.net/", redirect_url)
             resp = session.get(redirect_url, allow_redirects=True, timeout=10)
 
-    print(f"[✓] Login successful\n")
+    print(f"[✓] Login successful")
+    print(f"[*] Session cookies: {len(session.cookies)} cookies stored")
+    print(f"[*] Current URL: {resp.url}\n")
 except Exception as e:
     print(f"[✗] Login error: {e}\n")
     exit(1)
@@ -79,6 +81,8 @@ for url in urls:
     try:
         resp = session.get(url, allow_redirects=True, timeout=10)
         print(f"\n[{resp.status_code}] {url}")
+        print(f"  Final URL: {resp.url}")
+        print(f"  Content length: {len(resp.text)} bytes")
 
         if resp.status_code == 200:
             print(f"  ✓ Success!")
@@ -92,6 +96,10 @@ for url in urls:
                 print("  ✓ Found 'license'")
             if "You do not have" in resp.text:
                 print("  ✓ Found 'You do not have' message")
+
+            # Check if it's just OAuth redirect
+            if "signin-oidc" in resp.text:
+                print("  ⚠ WARNING: Page contains OAuth redirect - not authenticated!")
 
             # Save HTML
             filename = f"page_{urls.index(url)}.html"
