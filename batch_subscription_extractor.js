@@ -55,12 +55,9 @@ function curl(url, post = null, cookieJar = null) {
             try { fs.unlinkSync(tempFile); } catch {}
         }
 
-        const parts = output.split('\r\n\r\n');
-        const body = parts.slice(1).join('\r\n\r\n');
-        const status = parseInt(parts[0].match(/HTTP\/\d\.\d (\d+)/)?.[1] || 0);
-        const loc = parts[0].match(/[Ll]ocation:\s*([^\r\n]+)/)?.[1]?.trim();
-        if (DEBUG) console.error(`[DEBUG] Status: ${status}, Body size: ${body.length}`);
-        return { status, body, location: loc };
+        const result = parseResponse(output);
+        if (DEBUG) console.error(`[DEBUG] Status: ${result.status}, Body size: ${result.body.length}`);
+        return result;
     } catch (e) {
         // Clean up temp file on error
         if (tempFile) {
@@ -83,8 +80,16 @@ const DEBUG = process.argv.includes('--debug');
 // Parse response with manual redirect handling
 function parseResponse(output) {
     const parts = output.split('\r\n\r\n');
-    const headers = parts[0];
-    const body = parts.slice(1).join('\r\n\r\n');
+    let headers = parts[0];
+    let body = parts.slice(1).join('\r\n\r\n');
+
+    // Handle proxy wrapping: actual HTTP response in body
+    if (body && body.startsWith('HTTP/')) {
+        const bodyParts = body.split('\r\n\r\n');
+        headers = bodyParts[0];
+        body = bodyParts.slice(1).join('\r\n\r\n');
+    }
+
     const status = parseInt(headers.match(/HTTP\/\d\.\d (\d+)/)?.[1] || 0);
     const location = headers.match(/[Ll]ocation:\s*([^\r\n]+)/)?.[1]?.trim();
     return { status, body, location };

@@ -45,8 +45,16 @@ function curl(url, post = null, followRedirect = false) {
 
 function parseResponse(output) {
     const parts = output.split('\r\n\r\n');
-    const headers = parts[0];
-    const body = parts.slice(1).join('\r\n\r\n');
+    let headers = parts[0];
+    let body = parts.slice(1).join('\r\n\r\n');
+
+    // Handle proxy wrapping: actual HTTP response in body
+    if (body && body.startsWith('HTTP/')) {
+        const bodyParts = body.split('\r\n\r\n');
+        headers = bodyParts[0];
+        body = bodyParts.slice(1).join('\r\n\r\n');
+    }
+
     const status = parseInt(headers.match(/HTTP\/\d\.\d (\d+)/)?.[1] || 0);
     const location = headers.match(/[Ll]ocation:\s*([^\r\n]+)/)?.[1]?.trim();
     return { status, body, location };
