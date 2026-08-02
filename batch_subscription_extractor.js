@@ -26,24 +26,25 @@ const results = [];
 let processed = 0;
 let failed = 0;
 
-// Curl helper - Windows compatible (uses temp files for POST data)
+// Curl helper - Windows compatible (uses temp files for POST data and cookie jar)
 const path = require('path');
 const os = require('os');
 
-function curl(url, post = null) {
+function curl(url, post = null, cookieJar = null) {
     try {
         let cmd;
         let tempFile;
+        const cookieFlags = cookieJar ? `-b "${cookieJar}" -c "${cookieJar}"` : '';
 
         if (post) {
             // For POST, write data to temp file to avoid Windows shell escaping issues
             tempFile = path.join(os.tmpdir(), `curl_data_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.txt`);
             const data = Object.entries(post).map(([k,v]) => `${k}=${v}`).join('&');
             fs.writeFileSync(tempFile, data);
-            cmd = `curl -s -i -x "${PROXY}" --connect-timeout 10 --max-time 20 -X POST -d @"${tempFile}" "${url}"`;
+            cmd = `curl -s -i ${cookieFlags} -x "${PROXY}" --connect-timeout 10 --max-time 20 -X POST -d @"${tempFile}" "${url}"`;
         } else {
             // GET request
-            cmd = `curl -s -i -x "${PROXY}" --connect-timeout 10 --max-time 20 "${url}"`;
+            cmd = `curl -s -i ${cookieFlags} -x "${PROXY}" --connect-timeout 10 --max-time 20 "${url}"`;
         }
 
         if (DEBUG) console.error(`[DEBUG] Curl: ${cmd.substring(0, 100)}...`);
@@ -81,28 +82,42 @@ const DEBUG = process.argv.includes('--debug');
 
 // Process single account
 function processAccount(account) {
+    const cookieJar = path.join(os.tmpdir(), `portswigger_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.txt`);
+
     try {
         // Login
-        let r = curl('https://login.portswigger.net/authorize?client_id=F1PNGMosqeuuNO5cKQzDesrY2XzvPWGz&redirect_uri=https://portswigger.net/signin-oidc&response_type=code&scope=openid+profile+email&code_challenge=BldXYnkHHNxMQttliGBK-tWU16bEzTbKyUsr9WnArgk&code_challenge_method=S256&response_mode=query');
+        let r = curl('https://login.portswigger.net/authorize?client_id=F1PNGMosqeuuNO5cKQzDesrY2XzvPWGz&redirect_uri=https://portswigger.net/signin-oidc&response_type=code&scope=openid+profile+email&code_challenge=BldXYnkHHNxMQttliGBK-tWU16bEzTbKyUsr9WnArgk&code_challenge_method=S256&response_mode=query', null, cookieJar);
         let state = r.location?.match(/state=([^&]+)/)?.[1] || '';
 
-        const loginData = Object.entries({username: account.username, password: account.password, action:'default'})
-            .map(([k,v]) => `${k}=${v}`).join('&');
-        const loginCmd = `curl -s -i -x "${PROXY}" -X POST -d "${loginData}" "https://login.portswigger.net/u/login${state ? '?state='+state : ''}"`;
+        // If state not in location, try body
+        if (!state) {
+            const stateMatch = r.body.match(/state=([^&\s'"]+)/);
+            if (stateMatch) state = stateMatch[1];
+        }
 
-        const loginOutput = execSync(loginCmd, {encoding:'utf-8', shell: true, maxBuffer: 50*1024*1024, timeout: 30000});
-        let url = loginOutput.match(/[Ll]ocation:\s*([^\r\n]+)/)?.[1]?.trim();
+        // Login with credentials
+        r = curl(`https://login.portswigger.net/u/login${state ? '?state='+state : ''}`, {
+            username: account.username,
+            password: account.password,
+            action: 'default'
+        }, cookieJar);
+
+        let url = r.location;
+        if (!url) {
+            // Try to find state in body and continue anyway
+            throw new Error('Login failed - no redirect');
+        }
 
         // Follow redirects
         for (let i = 0; i < 15 && url; i++) {
             if (!url.startsWith('http')) url = 'https://login.portswigger.net' + url;
-            r = curl(url);
+            r = curl(url, null, cookieJar);
             url = r.location;
             if (url?.includes('portswigger.net') && !url.includes('login')) break;
         }
 
         // Get subscription data
-        r = curl('https://portswigger.net/#/my-account');
+        r = curl('https://portswigger.net/#/my-account', null, cookieJar);
         const html = r.body;
 
         // Parse subscription
@@ -129,7 +144,7 @@ function processAccount(account) {
         const dates = html.match(datePattern);
         const expiry = dates ? dates[0] : null;
 
-        return {
+        const result = {
             username: account.username,
             plan: plan,
             subscription: subscription,
@@ -137,7 +152,13 @@ function processAccount(account) {
             status: 'OK'
         };
 
+        // Clean up cookie jar
+        try { fs.unlinkSync(cookieJar); } catch {}
+        return result;
+
     } catch (error) {
+        // Clean up cookie jar on error
+        try { fs.unlinkSync(cookieJar); } catch {}
         return {
             username: account.username,
             plan: 'Unknown',
