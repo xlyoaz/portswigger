@@ -1,0 +1,13 @@
+{
+  "name": "portswigger-extractor",
+  "version": "1.0.0",
+  "description": "PortSwigger subscription extractor",
+  "main": "extract_with_node.js",
+  "dependencies": {
+    "http-proxy-agent": "^5.0.0",
+    "https-proxy-agent": "^7.0.2"
+  },
+  "scripts": {
+    "start": "node extract_with_node.js"
+  }
+}
