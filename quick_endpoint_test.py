@@ -82,6 +82,35 @@ print("\n[3] Endpoint Testleri:")
 print("=" * 80)
 
 endpoints = [
+    # Subscriptions endpoints
+    f"https://portswigger.net/subscriptions",
+    f"https://portswigger.net/account/subscriptions",
+    f"https://portswigger.net/user/subscriptions",
+    f"https://portswigger.net/your-subscriptions",
+    f"https://portswigger.net/my-subscriptions",
+
+    # Account/Profile endpoints
+    f"https://portswigger.net/account",
+    f"https://portswigger.net/account/billing",
+    f"https://portswigger.net/account/billing/subscriptions",
+    f"https://portswigger.net/profile",
+    f"https://portswigger.net/profile/subscriptions",
+
+    # API endpoints
+    f"https://portswigger.net/api/subscriptions",
+    f"https://portswigger.net/api/v1/subscriptions",
+    f"https://portswigger.net/api/account/subscriptions",
+    f"https://portswigger.net/api/user/subscriptions",
+    f"https://portswigger.net/api/billing",
+    f"https://portswigger.net/api/account/billing",
+
+    # Dashboard/Settings
+    f"https://portswigger.net/dashboard",
+    f"https://portswigger.net/dashboard/subscriptions",
+    f"https://portswigger.net/settings/subscriptions",
+    f"https://portswigger.net/settings/billing",
+
+    # License endpoints
     f"https://portswigger.net/users/{username}/licenses",
     f"https://portswigger.net/user/{username}/licenses",
     f"https://portswigger.net/users/{username.split('@')[0]}/licenses",
@@ -89,9 +118,6 @@ endpoints = [
     f"https://portswigger.net/api/subscription",
     f"https://portswigger.net/api/user/plan",
     f"https://portswigger.net/account/plan",
-    f"https://portswigger.net/subscriptions",
-    f"https://portswigger.net/account/subscriptions",
-    f"https://portswigger.net/user/subscriptions",
 ]
 
 for url in endpoints:
