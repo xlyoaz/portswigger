@@ -125,40 +125,40 @@ fs.writeFileSync('debug_login_response.html', r.body);
 console.log('\nFull response saved to: debug_login_response.html');
 
 // STEP 3: Follow OAuth redirects (INCLUDING /signin-oidc code exchange)
-console.log('\n[3] Following OAuth redirect chain (including /signin-oidc)...');
+console.log('\n[3] Following OAuth redirect chain...');
 let url = r.location;
 let redirectCount = 0;
-let signinOidcDone = false;
 
 while (url && redirectCount < 10) {
     redirectCount++;
-    if (!url.startsWith('http')) url = 'https://login.portswigger.net' + url;
+    if (!url.startsWith('http')) {
+        url = 'https://login.portswigger.net' + url;
+    }
 
-    console.log(`\n   ${redirectCount}. GET ${url.substring(0, 70)}`);
-    console.log(`      [Sending request...]`);
+    console.log(`\n   [${redirectCount}] GET ${url.substring(0, 70)}`);
     r = curl(url, null, cookieJar);
 
-    console.log(`      Status: ${r.status}`);
-    console.log(`      Location: ${r.location?.substring(0, 60) || '(none)'}`);
-    console.log(`      Set-Cookie: ${r.setCookie ? r.setCookie.substring(0, 50) : '(none)'}`);
+    console.log(`       Status: ${r.status}`);
+    console.log(`       Next: ${r.location?.substring(0, 60) || '(none)'}`);
+    console.log(`       Cookie: ${r.setCookie ? r.setCookie.substring(0, 45) : '(none)'}`);
 
     if (r.status === 0) {
-        console.log(`      [ERROR] ${r.error}`);
+        console.log(`       ERROR: ${r.error}`);
         break;
     }
 
+    // If /signin-oidc, this is code exchange
     if (url.includes('/signin-oidc')) {
-        signinOidcDone = true;
-        console.log('      [✓] Code exchange step completed');
+        console.log('       >>> Code exchange at /signin-oidc');
     }
 
-    // Stop after we've done signin-oidc and got another redirect
-    if (signinOidcDone && !r.location) {
-        console.log('      [✓] OAuth flow complete (no more redirects)');
+    // Continue if there's a redirect
+    if (r.location) {
+        url = r.location;
+    } else {
+        console.log('       [✓] No more redirects - OAuth complete');
         break;
     }
-
-    url = r.location;
 }
 
 // STEP 4: Try licenses page
