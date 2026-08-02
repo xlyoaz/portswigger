@@ -124,10 +124,11 @@ if (r.status !== 302) {
 fs.writeFileSync('debug_login_response.html', r.body);
 console.log('\nFull response saved to: debug_login_response.html');
 
-// STEP 3: Follow OAuth redirects
-console.log('\n[3] Following OAuth redirect chain...');
+// STEP 3: Follow OAuth redirects (INCLUDING /signin-oidc code exchange)
+console.log('\n[3] Following OAuth redirect chain (including /signin-oidc)...');
 let url = r.location;
 let redirectCount = 0;
+let signinOidcDone = false;
 
 while (url && redirectCount < 10) {
     redirectCount++;
@@ -146,9 +147,14 @@ while (url && redirectCount < 10) {
         break;
     }
 
-    // Stop when we reach portswigger.net (non-login)
-    if (r.location && r.location.includes('portswigger.net') && !r.location.includes('login')) {
-        console.log('      [✓] Reached portswigger.net');
+    if (url.includes('/signin-oidc')) {
+        signinOidcDone = true;
+        console.log('      [✓] Code exchange step completed');
+    }
+
+    // Stop after we've done signin-oidc and got another redirect
+    if (signinOidcDone && !r.location) {
+        console.log('      [✓] OAuth flow complete (no more redirects)');
         break;
     }
 
