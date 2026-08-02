@@ -11,19 +11,29 @@ const COOKIE_JAR = path.join(os.tmpdir(), `test_${Date.now()}.txt`);
 const username = 'y5571702@gmail.com';
 const password = 'Xlyoaz60863131..';
 
-function parseResponse(output) {
+function parseResponse(output, debug = false) {
     const parts = output.split('\r\n\r\n');
     let headers = parts[0];
     let body = parts.slice(1).join('\r\n\r\n');
+
+    if (debug) {
+        console.log('[DEBUG] Raw output length:', output.length);
+        console.log('[DEBUG] Headers (first 300 chars):', headers.substring(0, 300));
+    }
 
     if (body && body.startsWith('HTTP/')) {
         const bodyParts = body.split('\r\n\r\n');
         headers = bodyParts[0];
         body = bodyParts.slice(1).join('\r\n\r\n');
+        if (debug) console.log('[DEBUG] After unwrap - headers (first 300 chars):', headers.substring(0, 300));
     }
 
     const status = parseInt(headers.match(/HTTP\/\d\.\d (\d+)/)?.[1] || 0);
     const location = headers.match(/[Ll]ocation:\s*([^\r\n]+)/)?.[1]?.trim();
+    if (debug) {
+        console.log('[DEBUG] Status:', status);
+        console.log('[DEBUG] Location match:', location || '(no match)');
+    }
     return { status, body, location };
 }
 
@@ -90,28 +100,23 @@ for (let i = 0; i < 5 && url; i++) {
 }
 
 console.log('\n' + '='.repeat(60));
-console.log('STEP 4: Fetch licenses page');
+console.log('STEP 4: Fetch licenses page (WITH DEBUG)');
 console.log('='.repeat(60));
 console.log(`GET https://portswigger.net/users/youraccount/licenses`);
-r = curl('https://portswigger.net/users/youraccount/licenses');
-console.log(`Status: ${r.status}`);
+
+// Make raw curl call to see full response
+const cookieFlags = `-b "${COOKIE_JAR}" -c "${COOKIE_JAR}"`;
+const rawCmd = `curl -s -i ${cookieFlags} -x "${PROXY}" --connect-timeout 10 --max-time 20 "https://portswigger.net/users/youraccount/licenses"`;
+console.log('[DEBUG] Running: curl -s -i [cookies] [proxy] https://portswigger.net/users/youraccount/licenses');
+const rawOutput = execSync(rawCmd, { encoding: 'utf-8', shell: true, maxBuffer: 50*1024*1024, timeout: 35000 });
+
+console.log('[DEBUG] Raw response (first 500 chars):');
+console.log(JSON.stringify(rawOutput.substring(0, 500)));
+
+r = parseResponse(rawOutput, true);
+console.log(`\nStatus: ${r.status}`);
 console.log(`Body size: ${r.body.length} bytes`);
 console.log(`Location header: ${r.location || '(none)'}\n`);
-console.log(`First 150 chars:\n${r.body.substring(0, 150)}\n`);
-
-// If 302, follow the redirect
-if (r.status === 302 && r.location) {
-    console.log('='.repeat(60));
-    console.log('STEP 4b: Following 302 redirect');
-    console.log('='.repeat(60));
-    let redirectUrl = r.location;
-    if (!redirectUrl.startsWith('http')) redirectUrl = 'https://portswigger.net' + redirectUrl;
-    console.log(`GET ${redirectUrl.substring(0, 80)}`);
-    r = curl(redirectUrl);
-    console.log(`Status: ${r.status}`);
-    console.log(`Body size: ${r.body.length} bytes`);
-    console.log(`First 150 chars:\n${r.body.substring(0, 150)}\n`);
-}
 
 // Check what page we got
 if (r.body.includes('You do not have any subscriptions')) {
