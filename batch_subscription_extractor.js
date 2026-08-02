@@ -26,16 +26,34 @@ const results = [];
 let processed = 0;
 let failed = 0;
 
-// Curl helper
+// Curl helper - Windows compatible (uses temp files for POST data)
+const path = require('path');
+const os = require('os');
+
 function curl(url, post = null) {
     try {
-        let cmd = `curl -s -i -x "${PROXY}" --connect-timeout 10 --max-time 20 "${url}"`;
+        let cmd;
+        let tempFile;
+
         if (post) {
+            // For POST, write data to temp file to avoid Windows shell escaping issues
+            tempFile = path.join(os.tmpdir(), `curl_data_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.txt`);
             const data = Object.entries(post).map(([k,v]) => `${k}=${v}`).join('&');
-            cmd = `curl -s -i -x "${PROXY}" --connect-timeout 10 --max-time 20 -X POST -d "${data}" "${url}"`;
+            fs.writeFileSync(tempFile, data);
+            cmd = `curl -s -i -x "${PROXY}" --connect-timeout 10 --max-time 20 -X POST -d @"${tempFile}" "${url}"`;
+        } else {
+            // GET request
+            cmd = `curl -s -i -x "${PROXY}" --connect-timeout 10 --max-time 20 "${url}"`;
         }
+
         if (DEBUG) console.error(`[DEBUG] Curl: ${cmd.substring(0, 100)}...`);
         const output = execSync(cmd, { encoding: 'utf-8', shell: true, maxBuffer: 50*1024*1024, timeout: 35000 });
+
+        // Clean up temp file
+        if (tempFile) {
+            try { fs.unlinkSync(tempFile); } catch {}
+        }
+
         const parts = output.split('\r\n\r\n');
         const body = parts.slice(1).join('\r\n\r\n');
         const status = parseInt(parts[0].match(/HTTP\/\d\.\d (\d+)/)?.[1] || 0);
@@ -43,6 +61,10 @@ function curl(url, post = null) {
         if (DEBUG) console.error(`[DEBUG] Status: ${status}, Body size: ${body.length}`);
         return { status, body, location: loc };
     } catch (e) {
+        // Clean up temp file on error
+        if (tempFile) {
+            try { fs.unlinkSync(tempFile); } catch {}
+        }
         if (DEBUG) console.error(`[DEBUG] Curl error: ${e.message.substring(0, 100)}`);
         return { status: 0, body: '', location: null };
     }
