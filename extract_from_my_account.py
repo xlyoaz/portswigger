@@ -5,7 +5,6 @@ import requests
 import json
 import re
 from urllib.parse import urljoin, parse_qs, urlparse
-from bs4 import BeautifulSoup
 
 proxy_url = "http://buymobileproxycom:mugla9392@ankara8.buymobileproxy.com:8029"
 
@@ -84,8 +83,6 @@ try:
     # Parse HTML
     print("[3] Parsing page content...\n")
 
-    soup = BeautifulSoup(html, 'html.parser')
-
     # Method 1: Look for visible text containing subscription/plan info
     print("[A] Searching for subscription-related text:")
     print("=" * 80)
@@ -120,32 +117,31 @@ try:
             except:
                 print(match[:200])
 
-    # Method 3: Extract data from data attributes
+    # Method 3: Extract data from data attributes using regex
     print("\n[C] Extracting data attributes:")
     print("=" * 80)
 
-    elements_with_data = soup.find_all(attrs={"data-testid": True})
-    for elem in elements_with_data:
-        data_testid = elem.get("data-testid", "")
-        if any(keyword in data_testid.lower() for keyword in ['subscription', 'plan', 'license', 'account']):
-            print(f"  Found: {data_testid}")
-            print(f"  Content: {elem.get_text()[:100]}")
+    data_attrs = re.findall(r'data-testid=["\']([^"\']*)["\']', html)
+    for attr in data_attrs:
+        if any(keyword in attr.lower() for keyword in ['subscription', 'plan', 'license', 'account']):
+            print(f"  Found: {attr}")
 
     # Method 4: Look for script tags containing data
     print("\n[D] Extracting data from script tags:")
     print("=" * 80)
 
-    scripts = soup.find_all('script')
+    scripts = re.findall(r'<script[^>]*>(.*?)</script>', html, re.DOTALL)
     for i, script in enumerate(scripts):
-        if script.string and any(keyword in script.string.lower() for keyword in ['subscription', 'plan', 'license']):
+        if any(keyword in script.lower() for keyword in ['subscription', 'plan', 'license']):
             print(f"\n[Script {i+1}] (first 300 chars)")
-            print(script.string[:300])
+            print(script[:300])
 
-    # Method 5: Extract all visible text
+    # Method 5: Extract all visible text (remove HTML tags)
     print("\n[E] Visible page text (first 1000 chars):")
     print("=" * 80)
 
-    text = soup.get_text()
+    text = re.sub(r'<[^>]*>', '', html)
+    text = re.sub(r'\s+', ' ', text)
     print(text[:1000])
 
     # Save full HTML to file for manual inspection
