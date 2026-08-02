@@ -63,10 +63,11 @@ if (!state) {
 }
 
 console.log('\n[2] Step 2: Login');
-r = curl(`https://login.portswigger.net/u/login?state=${state}`, {
+r = curl('https://login.portswigger.net/u/login', {
     username: username,
     password: password,
-    action: 'default'
+    action: 'default',
+    state: state
 });
 
 if (r.body.length > 5000) {
