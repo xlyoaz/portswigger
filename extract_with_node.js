@@ -32,6 +32,8 @@ function makeRequest(url, options = {}) {
         // Proxy auth header
         const proxyAuth = Buffer.from(`${PROXY_USER}:${PROXY_PASS}`).toString('base64');
 
+        console.log(`  [*] Requesting: ${url.substring(0, 60)}...`);
+
         const reqOptions = {
             hostname: PROXY_HOST,
             port: PROXY_PORT,
@@ -43,7 +45,7 @@ function makeRequest(url, options = {}) {
                 'Host': urlObj.hostname,
                 ...options.headers
             },
-            timeout: 10000
+            timeout: 30000  // Increased from 10s to 30s
         };
 
         if (options.body) {
@@ -52,7 +54,7 @@ function makeRequest(url, options = {}) {
             reqOptions.headers['Content-Length'] = Buffer.byteLength(body);
         }
 
-        const client = isHttps ? https : http;
+        const client = http;  // Always use http for proxy connection
 
         const req = client.request(reqOptions, (res) => {
             let data = '';
@@ -72,7 +74,11 @@ function makeRequest(url, options = {}) {
             });
         });
 
-        req.on('error', reject);
+        req.on('error', (err) => {
+            console.error(`    [E] Error: ${err.message}`);
+            reject(err);
+        });
+
         req.on('timeout', () => {
             req.destroy();
             reject(new Error('Request timeout'));
