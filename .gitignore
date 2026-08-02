@@ -12,6 +12,14 @@ build/
 .pytest_cache/
 .coverage
 .DS_Store
-*.json
+node_modules/
 extracted_plans.*
 portswigger_login_results.*
+subscriptions_results.*
+subscriptions_summary.txt
+final_test_response.html
+batch_debug_response.html
+http_agent_response.html
+simple_oauth_response.html
+follow_users_response.html
+http_licenses.html
