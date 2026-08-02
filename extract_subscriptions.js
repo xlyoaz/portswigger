@@ -85,28 +85,31 @@ function extractPlan(html) {
         return 'Free';
     }
 
-    // Check for plan types (case insensitive, look for them in subscription context)
-    if (html.match(/class=["'].*subscription.*["'][^>]*>[\s\S]{0,500}enterprise/i) ||
-        html.match(/enterprise[\s\S]{0,100}subscription/i) ||
-        html.match(/>.*enterprise.*</i)) {
+    // Look for subscription section and extract plan name from within it
+    // Plans appear as subscription items with names like "Burp Suite Enterprise", etc.
+
+    // Check for specific subscription names (order matters - Enterprise first as most restrictive)
+    if (html.match(/burp\s+suite\s+enterprise/i) ||
+        html.match(/subscription[^<]{0,200}enterprise/i) ||
+        html.match(/active[^<]{0,100}enterprise[^<]{0,50}subscription/i)) {
         return 'Enterprise';
     }
 
-    if (html.match(/class=["'].*subscription.*["'][^>]*>[\s\S]{0,500}team/i) ||
-        html.match(/team[\s\S]{0,100}subscription/i) ||
-        html.match(/>.*team.*</i)) {
+    if (html.match(/burp\s+suite\s+team/i) ||
+        html.match(/subscription[^<]{0,200}team/i) ||
+        html.match(/active[^<]{0,100}team[^<]{0,50}subscription/i)) {
         return 'Team';
     }
 
-    if (html.match(/class=["'].*subscription.*["'][^>]*>[\s\S]{0,500}professional/i) ||
-        html.match(/professional[\s\S]{0,100}subscription/i) ||
-        html.match(/>.*professional.*</i)) {
+    if (html.match(/burp\s+suite\s+professional/i) ||
+        html.match(/subscription[^<]{0,200}professional/i) ||
+        html.match(/active[^<]{0,100}professional[^<]{0,50}subscription/i)) {
         return 'Professional';
     }
 
-    if (html.match(/class=["'].*subscription.*["'][^>]*>[\s\S]{0,500}community/i) ||
-        html.match(/community[\s\S]{0,100}subscription/i) ||
-        html.match(/>.*community.*</i)) {
+    if (html.match(/burp\s+suite\s+community/i) ||
+        html.match(/subscription[^<]{0,200}community/i) ||
+        html.match(/active[^<]{0,100}community[^<]{0,50}subscription/i)) {
         return 'Community';
     }
 
@@ -137,17 +140,27 @@ function processAccount(account) {
             throw new Error('Login failed');
         }
 
-        // Step 3: Follow OAuth redirects (but don't complete code exchange)
+        // Step 3: Follow OAuth redirects (INCLUDING code exchange)
         let url = r.location;
         for (let i = 0; i < 10 && url; i++) {
             if (!url.startsWith('http')) url = 'https://login.portswigger.net' + url;
-            if (url.includes('/signin-oidc')) break;
             r = curl(url, null, cookieJar);
+            // After signin-oidc code exchange, we should have a redirect to portswigger.net
+            if (r.location && r.location.includes('portswigger.net') && !r.location.includes('login')) {
+                break;
+            }
             url = r.location;
         }
 
         // Step 4: Fetch licenses page with established session cookies
         r = curl('https://portswigger.net/users/youraccount/licenses', null, cookieJar);
+
+        // Step 5: If redirected to /users, follow it
+        if (r.status === 302 && r.location?.includes('/users?returnurl')) {
+            let usersUrl = r.location;
+            if (!usersUrl.startsWith('http')) usersUrl = 'https://portswigger.net' + usersUrl;
+            r = curl(usersUrl, null, cookieJar);
+        }
 
         // Step 5: Extract plan from HTML
         const plan = extractPlan(r.body);
