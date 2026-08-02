@@ -24,11 +24,18 @@ function makeRequest(url, options = {}) {
         let curlCmd = `curl -s -i -x "${PROXY}" "${url}"`;
 
         if (options.method === 'POST' && options.body) {
-            const bodyStr = querystring.stringify(options.body);
-            curlCmd = `curl -s -i -x "${PROXY}" -X POST -d '${bodyStr}' "${url}"`;
+            // Build POST data properly for Windows
+            const bodyParts = [];
+            for (const [key, value] of Object.entries(options.body)) {
+                bodyParts.push(`${key}=${value}`);
+            }
+            const bodyStr = bodyParts.join('&');
+
+            // Windows-safe curl command
+            curlCmd = `curl -s -i -x "${PROXY}" -X POST -d "${bodyStr}" "${url}"`;
         }
 
-        const output = execSync(curlCmd, { encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024 });
+        const output = execSync(curlCmd, { encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024, shell: true });
 
         // Parse HTTP response
         const parts = output.split('\r\n\r\n');
