@@ -2,7 +2,7 @@
 
 /**
  * Extract subscription data using Node.js with HTTP + JavaScript execution
- * No browser required - pure Node.js
+ * No external dependencies - proxy built-in
  */
 
 const https = require('https');
@@ -10,13 +10,12 @@ const http = require('http');
 const { URL } = require('url');
 const querystring = require('querystring');
 const fs = require('fs');
+const net = require('net');
 
-const PROXY_URL = 'http://buymobileproxycom:mugla9392@ankara8.buymobileproxy.com:8029';
-const HttpProxyAgent = require('http-proxy-agent');
-const HttpsProxyAgent = require('https-proxy-agent');
-
-const httpAgent = new HttpProxyAgent(PROXY_URL);
-const httpsAgent = new HttpsProxyAgent(PROXY_URL);
+const PROXY_HOST = 'ankara8.buymobileproxy.com';
+const PROXY_PORT = 8029;
+const PROXY_USER = 'buymobileproxycom';
+const PROXY_PASS = 'mugla9392';
 
 // Read credentials
 const logFile = fs.readFileSync('log.txt', 'utf-8');
@@ -24,23 +23,26 @@ const [username, password] = logFile.split('\n')[0].trim().split(':').map(x => x
 
 console.log(`[*] Test account: ${username}\n`);
 
-// Helper to make HTTP requests
+// Helper to make HTTP requests through proxy
 function makeRequest(url, options = {}) {
     return new Promise((resolve, reject) => {
         const urlObj = new URL(url);
         const isHttps = urlObj.protocol === 'https:';
-        const client = isHttps ? https : http;
+
+        // Proxy auth header
+        const proxyAuth = Buffer.from(`${PROXY_USER}:${PROXY_PASS}`).toString('base64');
 
         const reqOptions = {
-            hostname: urlObj.hostname,
-            port: urlObj.port,
-            path: urlObj.pathname + urlObj.search,
+            hostname: PROXY_HOST,
+            port: PROXY_PORT,
+            path: url,  // Full URL through proxy
             method: options.method || 'GET',
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Proxy-Authorization': `Basic ${proxyAuth}`,
+                'Host': urlObj.hostname,
                 ...options.headers
             },
-            agent: isHttps ? httpsAgent : httpAgent,
             timeout: 10000
         };
 
@@ -49,6 +51,8 @@ function makeRequest(url, options = {}) {
             reqOptions.headers['Content-Type'] = 'application/x-www-form-urlencoded';
             reqOptions.headers['Content-Length'] = Buffer.byteLength(body);
         }
+
+        const client = isHttps ? https : http;
 
         const req = client.request(reqOptions, (res) => {
             let data = '';
