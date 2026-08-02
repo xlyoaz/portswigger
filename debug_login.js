@@ -29,30 +29,34 @@ function parseResponse(output) {
 }
 
 function curl(url, post = null, cookieJar = null) {
-    try {
-        let cmd;
-        const cookieFlags = cookieJar ? `-b "${cookieJar}" -c "${cookieJar}"` : '';
+    let cmd;
+    const cookieFlags = cookieJar ? `-b "${cookieJar}" -c "${cookieJar}"` : '';
 
-        if (post) {
-            const tempFile = path.join(os.tmpdir(), `data_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.txt`);
-            const data = Object.entries(post).map(([k,v]) => `${k}=${v}`).join('&');
-            fs.writeFileSync(tempFile, data);
-            cmd = `curl -s -i ${cookieFlags} -x "${PROXY}" --connect-timeout 10 --max-time 20 -X POST -d @"${tempFile}" "${url}"`;
-            try {
-                const output = execSync(cmd, { encoding: 'utf-8', shell: true, maxBuffer: 50*1024*1024, timeout: 35000 });
-                fs.unlinkSync(tempFile);
-                return parseResponse(output);
-            } catch (e) {
-                try { fs.unlinkSync(tempFile); } catch {}
-                throw e;
-            }
-        } else {
-            cmd = `curl -s -i ${cookieFlags} -x "${PROXY}" --connect-timeout 10 --max-time 20 "${url}"`;
+    if (post) {
+        const tempFile = path.join(os.tmpdir(), `data_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.txt`);
+        const data = Object.entries(post).map(([k,v]) => `${k}=${v}`).join('&');
+        fs.writeFileSync(tempFile, data);
+        cmd = `curl -s -i ${cookieFlags} -x "${PROXY}" --connect-timeout 10 --max-time 20 -X POST -d @"${tempFile}" "${url}"`;
+        try {
+            const output = execSync(cmd, { encoding: 'utf-8', shell: true, maxBuffer: 50*1024*1024, timeout: 35000 });
+            fs.unlinkSync(tempFile);
+            return parseResponse(output);
+        } catch (e) {
+            try { fs.unlinkSync(tempFile); } catch {}
+            console.error(`[CURL ERROR] POST to ${url}`);
+            console.error(`Error: ${e.message}`);
+            throw e;
+        }
+    } else {
+        cmd = `curl -s -i ${cookieFlags} -x "${PROXY}" --connect-timeout 10 --max-time 20 "${url}"`;
+        try {
             const output = execSync(cmd, { encoding: 'utf-8', shell: true, maxBuffer: 50*1024*1024, timeout: 35000 });
             return parseResponse(output);
+        } catch (e) {
+            console.error(`[CURL ERROR] GET to ${url}`);
+            console.error(`Error: ${e.message}`);
+            throw e;
         }
-    } catch (e) {
-        return { status: 0, body: '', location: null, error: e.message };
     }
 }
 
@@ -61,6 +65,8 @@ console.log('DEBUG: Testing login flow');
 console.log('='.repeat(70));
 
 const cookieJar = path.join(os.tmpdir(), `debug_${Date.now()}.txt`);
+
+try {
 
 // STEP 1: Get state
 console.log('\n[1] Getting state from authorize endpoint...');
@@ -174,5 +180,14 @@ if (r.status === 0) {
 
 fs.writeFileSync('debug_licenses_response.html', r.body);
 console.log('\nFull licenses response saved to: debug_licenses_response.html');
+
+} catch (e) {
+    console.error('\n' + '='.repeat(70));
+    console.error('[FATAL ERROR]');
+    console.error('='.repeat(70));
+    console.error(e.message);
+    console.error('\nStack:');
+    console.error(e.stack);
+}
 
 try { fs.unlinkSync(cookieJar); } catch {}
