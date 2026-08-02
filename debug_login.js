@@ -122,4 +122,57 @@ if (r.status !== 302) {
 fs.writeFileSync('debug_login_response.html', r.body);
 console.log('\nFull response saved to: debug_login_response.html');
 
+// STEP 3: Follow OAuth redirects
+console.log('\n[3] Following OAuth redirect chain...');
+let url = r.location;
+let redirectCount = 0;
+
+while (url && redirectCount < 10) {
+    redirectCount++;
+    if (!url.startsWith('http')) url = 'https://login.portswigger.net' + url;
+
+    console.log(`\n   ${redirectCount}. GET ${url.substring(0, 70)}`);
+    r = curl(url, null, cookieJar);
+
+    console.log(`      Status: ${r.status}`);
+    console.log(`      Location: ${r.location?.substring(0, 60) || '(none)'}`);
+    console.log(`      Set-Cookie: ${r.setCookie ? r.setCookie.substring(0, 50) : '(none)'}`);
+
+    if (r.status === 0) {
+        console.log(`      [ERROR] Request failed: ${r.error}`);
+        break;
+    }
+
+    // Stop when we reach portswigger.net (non-login)
+    if (r.location && r.location.includes('portswigger.net') && !r.location.includes('login')) {
+        console.log('      [✓] Reached portswigger.net');
+        break;
+    }
+
+    url = r.location;
+}
+
+// STEP 4: Try licenses page
+console.log('\n[4] Fetching licenses page...');
+r = curl('https://portswigger.net/users/youraccount/licenses', null, cookieJar);
+
+console.log(`Status: ${r.status}`);
+console.log(`Location: ${r.location || '(none)'}`);
+console.log(`Set-Cookie: ${r.setCookie ? r.setCookie.substring(0, 50) : '(none)'}`);
+console.log(`Body length: ${r.body.length} bytes`);
+
+if (r.status === 0) {
+    console.log(`[ERROR] Request failed: ${r.error}`);
+} else if (r.body.includes('You do not have any subscriptions')) {
+    console.log('[✓] Got free account page');
+} else if (r.body.includes('Your Subscriptions')) {
+    console.log('[✓] Got subscriptions page');
+} else {
+    console.log('[?] Got different page');
+    console.log('First 300 chars:', JSON.stringify(r.body.substring(0, 300)));
+}
+
+fs.writeFileSync('debug_licenses_response.html', r.body);
+console.log('\nFull licenses response saved to: debug_licenses_response.html');
+
 try { fs.unlinkSync(cookieJar); } catch {}
