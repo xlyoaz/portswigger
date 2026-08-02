@@ -2,13 +2,13 @@
 
 /**
  * PortSwigger subscription extractor - Node.js
- * Uses curl for proxy (handles all edge cases)
- * JavaScript execution for data extraction
+ * Uses curl for proxy + JavaScript execution
  */
 
 const { execSync } = require('child_process');
 const fs = require('fs');
 const vm = require('vm');
+const querystring = require('querystring');
 
 const PROXY = 'http://buymobileproxycom:mugla9392@ankara8.buymobileproxy.com:8029';
 
@@ -21,35 +21,33 @@ console.log(`[*] Test account: ${username}\n`);
 // Make HTTP request using curl
 function makeRequest(url, options = {}) {
     try {
-        let curlCmd = `curl -s -w "\n%{http_code}\n" -x "${PROXY}" "${url}"`;
+        let curlCmd = `curl -s -i -x "${PROXY}" "${url}"`;
 
-        if (options.method === 'POST') {
-            const data = new URLSearchParams(options.body).toString();
-            curlCmd = `curl -s -w "\n%{http_code}\n" -x "${PROXY}" -X POST -d "${data}" "${url}"`;
+        if (options.method === 'POST' && options.body) {
+            const bodyStr = querystring.stringify(options.body);
+            curlCmd = `curl -s -i -x "${PROXY}" -X POST -d '${bodyStr}' "${url}"`;
         }
 
-        if (options.headers) {
-            for (const [key, value] of Object.entries(options.headers)) {
-                curlCmd = curlCmd.replace(`"${url}"`, `-H "${key}: ${value}" "${url}"`);
-            }
-        }
+        const output = execSync(curlCmd, { encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024 });
 
-        const output = execSync(curlCmd, { encoding: 'utf-8' });
-        const lines = output.trim().split('\n');
-        const status = parseInt(lines[lines.length - 1]);
-        const body = lines.slice(0, -1).join('\n');
+        // Parse HTTP response
+        const parts = output.split('\r\n\r\n');
+        const headers = parts[0];
+        const body = parts.slice(1).join('\r\n\r\n');
 
-        return { status, body, location: extractHeader(body, 'location') };
+        // Extract status code
+        const statusMatch = headers.match(/HTTP\/\d\.\d (\d+)/);
+        const status = statusMatch ? parseInt(statusMatch[1]) : 0;
+
+        // Extract location header
+        const locMatch = headers.match(/[Ll]ocation:\s*([^\r\n]+)/);
+        const location = locMatch ? locMatch[1].trim() : null;
+
+        return { status, body, location };
     } catch (error) {
-        throw new Error(`Request failed: ${error.message}`);
+        console.error(`[!] Curl error: ${error.message.substring(0, 100)}`);
+        return { status: 0, body: '', location: null };
     }
-}
-
-// Extract header from response
-function extractHeader(body, headerName) {
-    const regex = new RegExp(`${headerName}:\\s*([^\r\n]+)`, 'i');
-    const match = body.match(regex);
-    return match ? match[1] : null;
 }
 
 // Execute JavaScript to extract data
