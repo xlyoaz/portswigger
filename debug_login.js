@@ -43,9 +43,7 @@ function curl(url, post = null, cookieJar = null) {
             return parseResponse(output);
         } catch (e) {
             try { fs.unlinkSync(tempFile); } catch {}
-            console.error(`[CURL ERROR] POST to ${url}`);
-            console.error(`Error: ${e.message}`);
-            throw e;
+            return { status: 0, body: '', location: null, error: `POST ${url}: ${e.message}` };
         }
     } else {
         cmd = `curl -s -i ${cookieFlags} -x "${PROXY}" --connect-timeout 10 --max-time 20 "${url}"`;
@@ -53,9 +51,7 @@ function curl(url, post = null, cookieJar = null) {
             const output = execSync(cmd, { encoding: 'utf-8', shell: true, maxBuffer: 50*1024*1024, timeout: 35000 });
             return parseResponse(output);
         } catch (e) {
-            console.error(`[CURL ERROR] GET to ${url}`);
-            console.error(`Error: ${e.message}`);
-            throw e;
+            return { status: 0, body: '', location: null, error: `GET ${url}: ${e.message}` };
         }
     }
 }
@@ -138,6 +134,7 @@ while (url && redirectCount < 10) {
     if (!url.startsWith('http')) url = 'https://login.portswigger.net' + url;
 
     console.log(`\n   ${redirectCount}. GET ${url.substring(0, 70)}`);
+    console.log(`      [Sending request...]`);
     r = curl(url, null, cookieJar);
 
     console.log(`      Status: ${r.status}`);
@@ -145,7 +142,7 @@ while (url && redirectCount < 10) {
     console.log(`      Set-Cookie: ${r.setCookie ? r.setCookie.substring(0, 50) : '(none)'}`);
 
     if (r.status === 0) {
-        console.log(`      [ERROR] Request failed: ${r.error}`);
+        console.log(`      [ERROR] ${r.error}`);
         break;
     }
 
