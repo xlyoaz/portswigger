@@ -59,14 +59,30 @@ function parseResponse(output) {
 
 // Step 1: OAuth authorize endpoint
 console.log('[1] Fetching OAuth authorize endpoint...');
-let r = curl('https://login.portswigger.net/authorize?client_id=F1PNGMosqeuuNO5cKQzDesrY2XzvPWGz&redirect_uri=https://portswigger.net/signin-oidc&response_type=code&scope=openid+profile+email&code_challenge=BldXYnkHHNxMQttliGBK-tWU16bEzTbKyUsr9WnArgk&code_challenge_method=S256&response_mode=query');
+const authUrl = 'https://login.portswigger.net/authorize?client_id=F1PNGMosqeuuNO5cKQzDesrY2XzvPWGz&redirect_uri=https://portswigger.net/signin-oidc&response_type=code&scope=openid+profile+email&code_challenge=BldXYnkHHNxMQttliGBK-tWU16bEzTbKyUsr9WnArgk&code_challenge_method=S256&response_mode=query';
+let r = curl(authUrl);
 console.log(`    Status: ${r.status}`);
+console.log(`    Location: ${r.location?.substring(0, 80) || '(none)'}`);
+console.log(`    Body size: ${r.body.length}`);
 
 let state = r.location?.match(/state=([^&]+)/)?.[1] || '';
-console.log(`    State: ${state.substring(0, 20)}...`);
+
+if (!state) {
+    // Try to find state in response body if not in Location header
+    const stateMatch = r.body.match(/state=([^&\s'"]+)/);
+    if (stateMatch) {
+        state = stateMatch[1];
+        console.log(`    [*] Found state in body: ${state.substring(0, 20)}...`);
+    }
+}
+
+console.log(`    State: ${state ? state.substring(0, 20) + '...' : '(not found)'}`);
 
 if (!state) {
     console.error('[!] Failed to extract state parameter');
+    console.error('[!] Saving response to debug_auth_response.html for inspection...');
+    fs.writeFileSync('debug_auth_response.html', r.body);
+    console.error('[!] Open debug_auth_response.html in browser to see what was returned');
     process.exit(1);
 }
 
