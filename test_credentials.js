@@ -139,6 +139,12 @@ async function testLogin(username, password) {
             res = await makeRequest({ url: redirectUrl, method: 'GET' }, null, cookies);
             console.log(`      ← ${res.status}`);
 
+            if (res.location) {
+                console.log(`      Location header: ${res.location}`);
+            } else {
+                console.log(`      No location header (final response)`);
+            }
+
             redirectCount++;
             if (res.status !== 302 || !res.location) break;
             redirectUrl = res.location;
