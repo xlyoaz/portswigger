@@ -12,10 +12,16 @@ const httpsAgent = new HttpsProxyAgent(PROXY);
 const REQUEST_TIMEOUT = 30000;
 const CONCURRENT_REQUESTS = 3;
 const SAVE_HTML = true;
-const HTML_DIR = 'html_responses';
+const TEMPLATES_DIR = 'templates';
+const PERSONAL_DETAILS_DIR = `${TEMPLATES_DIR}/personal_details`;
+const SUBSCRIPTION_PLANS_DIR = `${TEMPLATES_DIR}/subscription_plans`;
 
-if (SAVE_HTML && !fs.existsSync(HTML_DIR)) {
-    fs.mkdirSync(HTML_DIR, { recursive: true });
+if (SAVE_HTML) {
+    [TEMPLATES_DIR, PERSONAL_DETAILS_DIR, SUBSCRIPTION_PLANS_DIR].forEach(dir => {
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+    });
 }
 
 const stats = {
@@ -206,7 +212,17 @@ async function processAccount(username, password, index, total) {
 
             if (SAVE_HTML) {
                 const sanitized = username.replace(/[^a-z0-9]/gi, '_');
-                const htmlFile = `${HTML_DIR}/${sanitized}_${plan.replace(/\s/g, '_')}.html`;
+
+                const detailsFile = `${PERSONAL_DETAILS_DIR}/${sanitized}_details.json`;
+                const detailsData = {
+                    username,
+                    password,
+                    plan,
+                    timestamp: new Date().toISOString()
+                };
+                fs.writeFileSync(detailsFile, JSON.stringify(detailsData, null, 2));
+
+                const htmlFile = `${SUBSCRIPTION_PLANS_DIR}/${sanitized}_${plan.replace(/\s/g, '_')}.html`;
                 fs.writeFileSync(htmlFile, result.html);
             }
 
@@ -314,7 +330,10 @@ Results saved to:
   - subscriptions_results.json
   - paid_accounts.txt (${paidAccounts.length} paid accounts)
   - subscriptions_summary.txt
-  - html_responses/ (HTML pages for verification)
+
+  Templates:
+  - templates/personal_details/ (email:password:plan JSON files)
+  - templates/subscription_plans/ (HTML pages for verification)
 ================================================================================
 `;
 
