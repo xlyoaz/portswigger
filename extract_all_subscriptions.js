@@ -206,6 +206,13 @@ async function authWithHTTP(username, password) {
                 cookies
             );
 
+            // Follow redirects if needed
+            for (let i = 0; i < 5 && res.status === 302 && res.location; i++) {
+                let redirectUrl = res.location;
+                if (!redirectUrl.startsWith('http')) redirectUrl = 'https://portswigger.net' + redirectUrl;
+                res = await makeRequest({ url: redirectUrl, method: 'GET' }, null, cookies);
+            }
+
             // Check if we got authenticated access
             if (res.status === 200 && (res.body.includes('subscriptions') || res.body.includes('account'))) {
                 return {
