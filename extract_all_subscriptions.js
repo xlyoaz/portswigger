@@ -199,6 +199,21 @@ async function authWithHTTP(username, password) {
         const form = $('form').first();
 
         if (form.length === 0) {
+            // Fallback: Try direct access to licenses page (cookies may already be authenticated)
+            res = await makeRequest(
+                { url: 'https://portswigger.net/users/youraccount/licenses', method: 'GET' },
+                null,
+                cookies
+            );
+
+            // Check if we got authenticated access
+            if (res.status === 200 && (res.body.includes('subscriptions') || res.body.includes('account'))) {
+                return {
+                    success: true,
+                    html: res.body
+                };
+            }
+
             throw new Error('Form not found on /signin-oidc page');
         }
 
