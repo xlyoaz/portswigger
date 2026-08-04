@@ -71,7 +71,12 @@ function makeRequest(options, postData = null, cookies = {}) {
             path: reqUrl.path,
             method: options.method || 'GET',
             headers: {
-                'User-Agent': 'Mozilla/5.0',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
+                'Accept-Encoding': 'gzip, deflate',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1',
                 'Cookie': getCookieString(cookies),
                 ...options.headers
             },
@@ -183,12 +188,18 @@ async function authWithHTTP(username, password) {
         // Step 3: Follow OAuth redirects until we get to a page with content
         let redirectUrl = res.location;
         let redirectCount = 0;
-        for (let i = 0; i < MAX_REDIRECTS && redirectUrl; i++) {
-            if (!redirectUrl.startsWith('http')) redirectUrl = 'https://login.portswigger.net' + redirectUrl;
+        while (redirectUrl && redirectCount < MAX_REDIRECTS) {
+            if (!redirectUrl.startsWith('http')) {
+                if (redirectUrl.startsWith('/')) {
+                    redirectUrl = 'https://login.portswigger.net' + redirectUrl;
+                } else {
+                    redirectUrl = 'https://login.portswigger.net/' + redirectUrl;
+                }
+            }
             res = await makeRequest({ url: redirectUrl, method: 'GET' }, null, cookies);
             redirectCount++;
 
-            if (res.status !== 302 || !res.location) break;
+            if (res.status !== 302) break;
             redirectUrl = res.location;
         }
 
@@ -240,19 +251,11 @@ async function authWithHTTP(username, password) {
                 res = await makeRequest({ url: nextUrl, method: 'GET' }, null, cookies);
             }
         } else {
-            // Form not found - try direct licenses access fallback
-            // This can happen if /authorize/resume redirects directly or returns different content
-            res = await makeRequest(
-                { url: 'https://portswigger.net/users/youraccount/licenses', method: 'GET' },
-                null,
-                cookies
-            );
-
-            // Follow redirect chain if needed
-            for (let i = 0; i < 5 && res.status === 302 && res.location; i++) {
-                let redirectUrl = res.location;
-                if (!redirectUrl.startsWith('http')) redirectUrl = 'https://portswigger.net' + redirectUrl;
-                res = await makeRequest({ url: redirectUrl, method: 'GET' }, null, cookies);
+            // Form not found - form might have already submitted via redirects
+            // Try to check current response or continue to licenses page
+            // Check if we're already at a successful state
+            if (res.body.includes('portswigger.net') || res.body.includes('signin')) {
+                // We might be at signin page, try direct licenses access
             }
         }
 
@@ -263,20 +266,17 @@ async function authWithHTTP(username, password) {
             cookies
         );
 
-        if (res.status === 200 && (res.body.includes('subscriptions') || res.body.includes('account'))) {
-            return {
-                success: true,
-                html: res.body
-            };
-        }
-
-        // If direct access still doesn't work, try following one more redirect
-        if (res.status === 302 && res.location) {
+        // Follow redirect chain more aggressively
+        let redirectAttempts = 0;
+        while (res.status === 302 && res.location && redirectAttempts < 10) {
             let redirectUrl = res.location;
             if (!redirectUrl.startsWith('http')) redirectUrl = 'https://portswigger.net' + redirectUrl;
             res = await makeRequest({ url: redirectUrl, method: 'GET' }, null, cookies);
+            redirectAttempts++;
+        }
 
-            if (res.status === 200 && (res.body.includes('subscriptions') || res.body.includes('account'))) {
+        if (res.status === 200 && res.body.length > 100) {
+            if (res.body.includes('subscriptions') || res.body.includes('account') || res.body.includes('license')) {
                 return {
                     success: true,
                     html: res.body
