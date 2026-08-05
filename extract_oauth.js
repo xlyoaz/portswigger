@@ -156,13 +156,43 @@ function extractPlan(html) {
     return 'Unknown';
 }
 
+function extractClientId(html) {
+    if (!html) return null;
+
+    // 1) hidden input ara: <input name="client_id" value="...">
+    let match = html.match(/<input[^>]*name=["']?client_id["']?[^>]*value=["']([^"']+)["']/i);
+    if (match?.[1]) return match[1];
+
+    // 2) data-client-id attribute ara
+    match = html.match(/data-client-id=["']([^"']+)["']/i);
+    if (match?.[1]) return match[1];
+
+    // 3) inline JS ara: client_id: "..." veya clientId = "..."
+    match = html.match(/["\']?client_?[iI]d["\']?\s*[:=]\s*["\']([^"']+)["']/);
+    if (match?.[1]) return match[1];
+
+    return null;
+}
+
 async function authenticateAndGetData(username, password) {
     const cookies = {};
 
     try {
-        // Step 1: GET /authorize
-        const authorizeUrl = `https://login.portswigger.net/authorize?client_id=F1PNGMosqeuuNO5cKQzDesrY2XzvPWGz&redirect_uri=https://portswigger.net/signin-oidc&response_type=code&scope=openid+profile+email&code_challenge=${CODE_CHALLENGE}&code_challenge_method=S256&response_mode=query`;
-        let res = await makeRequest({ url: authorizeUrl, method: 'GET' }, null, cookies);
+        // Step 1: GET /authorize - extract client_id from response
+        // Start with a basic URL and let the server provide the full client_id
+        const baseAuthorizeUrl = `https://login.portswigger.net/authorize?redirect_uri=https://portswigger.net/signin-oidc&response_type=code&scope=openid+profile+email&code_challenge=${CODE_CHALLENGE}&code_challenge_method=S256&response_mode=query`;
+        let res = await makeRequest({ url: baseAuthorizeUrl, method: 'GET' }, null, cookies);
+
+        // Extract client_id from the response HTML
+        let dynamicClientId = extractClientId(res.body);
+
+        // If not found in response, the server might have accepted the request
+        // Try extracting state first, then we'll proceed
+        if (!dynamicClientId) {
+            // Fallback: use the hardcoded one (for backwards compatibility)
+            dynamicClientId = 'F1PNGMosqeuuNO5cKQzDesrY2XzvPWGz';
+        }
+
         let state = res.body.match(/state=([^&\s'"]+)/)?.[1];
 
         if (!state) throw new Error('State not found in authorize response');
