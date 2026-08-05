@@ -9,7 +9,6 @@ SET VAR "counter" "0" Integer
 ## Loop through each account
 FOREACH $"<accounts>" -> VAR "account"
 
-  SET VAR "counter" $"<counter>" Integer
   SUM $"<counter>" 1 -> VAR "counter"
 
   Split $"<account>" ":" -> VAR "creds"
@@ -46,7 +45,7 @@ FOREACH $"<accounts>" -> VAR "account"
     PRINT "✓ Success" Green
 
     ## Save HTML file
-    ConstantString "Configs\\extraction_results\\$"<email>"_licenses.html" -> VAR "htmlFile"
+    ConstantString "Configs\extraction_results\$"<email>"_licenses.html" -> VAR "htmlFile"
     StringToBytes $"<licensesRes>" -> VAR "htmlBytes"
     FileWriteBytes $"<htmlFile>" $"<htmlBytes>"
 
@@ -62,4 +61,4 @@ FOREACH $"<accounts>" -> VAR "account"
 ENDFOREACH
 
 PRINT "✓ Extraction completed" Green
-PRINT "Results saved to: Configs\\extraction_results\\" Green
+PRINT "Results saved to: Configs\extraction_results\" Green
