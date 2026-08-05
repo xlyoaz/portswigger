@@ -197,9 +197,9 @@ async function authenticateAndGetData(username, password) {
             redirectUrl = res.location;
         }
 
-        // Step 4: Get licenses page
+        // Step 4: Get account page with subscriptions
         res = await makeRequest(
-            { url: 'https://portswigger.net/users/youraccount/licenses', method: 'GET' },
+            { url: 'https://portswigger.net/users/youraccount', method: 'GET' },
             null,
             cookies
         );
@@ -214,9 +214,9 @@ async function authenticateAndGetData(username, password) {
         }
 
         if (res.status === 200 && res.body.length > 500) {
-            // Get personal details
+            // Personal details are on the same page, but fetch separately if available
             const personalRes = await makeRequest(
-                { url: 'https://portswigger.net/users/youraccount/personaldetails', method: 'GET' },
+                { url: 'https://portswigger.net/users/youraccount', method: 'GET' },
                 null,
                 cookies
             );
