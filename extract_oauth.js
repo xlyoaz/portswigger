@@ -15,7 +15,7 @@ const httpsAgent = new HttpsProxyAgent(PROXY);
 const httpAgent = new HttpProxyAgent(PROXY);
 
 const REQUEST_TIMEOUT = 30000;
-const CONCURRENT_REQUESTS = 3;
+const CONCURRENT_REQUESTS = 10;
 const MAX_REDIRECTS = 15;
 const SAVE_HTML = true;
 const TEMPLATES_DIR = 'templates';
