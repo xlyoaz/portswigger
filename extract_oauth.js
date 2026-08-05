@@ -128,6 +128,24 @@ function makeRequest(options, postData = null, cookies = {}) {
     });
 }
 
+async function makeRequestWithRetry(options, postData = null, cookies = {}, maxRetries = 3) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            return await makeRequest(options, postData, cookies);
+        } catch (err) {
+            const isTimeoutError = err.message.includes('ETIMEDOUT') || err.message.includes('timeout');
+            const isLastAttempt = attempt === maxRetries;
+
+            if (isTimeoutError && !isLastAttempt) {
+                const delayMs = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
+                await new Promise(resolve => setTimeout(resolve, delayMs));
+                continue;
+            }
+            throw err;
+        }
+    }
+}
+
 function urlencode(obj) {
     return Object.entries(obj)
         .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
@@ -183,7 +201,7 @@ async function authenticateAndGetData(username, password) {
 
         const authorizeUrl = `https://${AUTH0_DOMAIN}/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=openid+profile+email&code_challenge=${CODE_CHALLENGE}&code_challenge_method=S256&response_mode=form_post&nonce=${nonce}&auth0Client=${encodeURIComponent(auth0Client)}&state=${state}`;
 
-        let res = await makeRequest({ url: authorizeUrl, method: 'GET' }, null, cookies);
+        let res = await makeRequestWithRetry({ url: authorizeUrl, method: 'GET' }, null, cookies);
 
         // /authorize endpoint may return 302 redirect or 200 with login form
         // Follow redirect if needed
@@ -192,7 +210,7 @@ async function authenticateAndGetData(username, password) {
             if (!redirectUrl.startsWith('http')) {
                 redirectUrl = `https://${AUTH0_DOMAIN}${redirectUrl.startsWith('/') ? '' : '/'}${redirectUrl}`;
             }
-            res = await makeRequest({ url: redirectUrl, method: 'GET' }, null, cookies);
+            res = await makeRequestWithRetry({ url: redirectUrl, method: 'GET' }, null, cookies);
         }
 
         if (res.status !== 200) {
@@ -201,7 +219,7 @@ async function authenticateAndGetData(username, password) {
 
         // Step 2: POST /u/login
         const loginData = urlencode({ username, password, action: 'default', state });
-        res = await makeRequest(
+        res = await makeRequestWithRetry(
             {
                 url: `https://${AUTH0_DOMAIN}/u/login`,
                 method: 'POST',
@@ -224,7 +242,7 @@ async function authenticateAndGetData(username, password) {
             redirectUrl = `https://${AUTH0_DOMAIN}${redirectUrl.startsWith('/') ? '' : '/'}${redirectUrl}`;
         }
 
-        res = await makeRequest({ url: redirectUrl, method: 'GET' }, null, cookies);
+        res = await makeRequestWithRetry({ url: redirectUrl, method: 'GET' }, null, cookies);
 
         // Step 4: Follow remaining redirects (to /auth0/complete and beyond)
         let redirectCount = 0;
@@ -233,12 +251,12 @@ async function authenticateAndGetData(username, password) {
             if (!redirectUrl.startsWith('http')) {
                 redirectUrl = 'https://portswigger.net' + (redirectUrl.startsWith('/') ? '' : '/') + redirectUrl;
             }
-            res = await makeRequest({ url: redirectUrl, method: 'GET' }, null, cookies);
+            res = await makeRequestWithRetry({ url: redirectUrl, method: 'GET' }, null, cookies);
             redirectCount++;
         }
 
         // Step 5: Get subscriptions page
-        res = await makeRequest(
+        res = await makeRequestWithRetry(
             { url: 'https://portswigger.net/users/youraccount', method: 'GET' },
             null,
             cookies
@@ -249,7 +267,7 @@ async function authenticateAndGetData(username, password) {
         while (res.status === 302 && res.location && redirectAttempts < 10) {
             let nextUrl = res.location;
             if (!nextUrl.startsWith('http')) nextUrl = 'https://portswigger.net' + nextUrl;
-            res = await makeRequest({ url: nextUrl, method: 'GET' }, null, cookies);
+            res = await makeRequestWithRetry({ url: nextUrl, method: 'GET' }, null, cookies);
             redirectAttempts++;
         }
 
