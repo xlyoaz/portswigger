@@ -1,11 +1,11 @@
 ## PortSwigger Subscription Extraction - SvbScript
 ## Reads accounts from log.txt and extracts licenses page HTML
 
-FileReadLines "log.txt" -> VAR "accounts"
+FileReadLines "C:\\Users\\Administrator\\Desktop\\silverbullet\\Configs\\log.txt" -> VAR "accounts"
 PRINT "Loaded accounts" White
 
-CreatePath "extraction_results"
-FileWrite "extraction_results/results.json" "[\n" -> VAR "firstLine"
+CreatePath "C:\\Users\\Administrator\\Desktop\\silverbullet\\Configs\\extraction_results"
+FileWrite "C:\\Users\\Administrator\\Desktop\\silverbullet\\Configs\\extraction_results\\results.json" "[\n" -> VAR "firstLine"
 
 SET VAR "counter" "0" Integer
 SET VAR "total" $"<accounts[*]>" Integer
@@ -50,7 +50,7 @@ FOREACH $"<accounts>" -> VAR "account"
     PRINT "✓ Success" Green
 
     ## Save HTML file
-    ConstantString "extraction_results/$"<email>"_licenses.html" -> VAR "htmlFile"
+    ConstantString "C:\\Users\\Administrator\\Desktop\\silverbullet\\Configs\\extraction_results\\$"<email>"_licenses.html" -> VAR "htmlFile"
     StringToBytes $"<licensesRes>" -> VAR "htmlBytes"
     FileWriteBytes $"<htmlFile>" $"<htmlBytes>"
 
@@ -66,4 +66,4 @@ FOREACH $"<accounts>" -> VAR "account"
 ENDFOREACH
 
 PRINT "✓ Extraction completed" Green
-PRINT "Results saved to: extraction_results/" Green
+PRINT "Results saved to: C:\\Users\\Administrator\\Desktop\\silverbullet\\Configs\\extraction_results\\" Green
