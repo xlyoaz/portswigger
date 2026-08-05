@@ -10,6 +10,19 @@ const readline = require('readline');
 
 const PROXY = 'http://buymobileproxycom:mugla9392@ankara8.buymobileproxy.com:8029';
 const CODE_CHALLENGE = 'BldXYnkHHNxMQttliGBK-tWU16bEzTbKyUsr9WnArgk';
+const CLIENT_ID = 'F1PNGMosqeuuNO5cKQzDesrY2XzvPWGz';
+const REDIRECT_URI = 'https://portswigger.net/signin-oidc';
+const AUTH0_DOMAIN = 'login.portswigger.net';
+
+function generateNonce() {
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+}
+
+function generateState() {
+    return Array.from({ length: 43 }, () =>
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'[Math.floor(Math.random() * 66)]
+    ).join('');
+}
 
 const httpsAgent = new HttpsProxyAgent(PROXY);
 const httpAgent = new HttpProxyAgent(PROXY);
@@ -156,52 +169,31 @@ function extractPlan(html) {
     return 'Unknown';
 }
 
-function extractClientId(html) {
-    if (!html) return null;
-
-    // 1) hidden input ara: <input name="client_id" value="...">
-    let match = html.match(/<input[^>]*name=["']?client_id["']?[^>]*value=["']([^"']+)["']/i);
-    if (match?.[1]) return match[1];
-
-    // 2) data-client-id attribute ara
-    match = html.match(/data-client-id=["']([^"']+)["']/i);
-    if (match?.[1]) return match[1];
-
-    // 3) inline JS ara: client_id: "..." veya clientId = "..."
-    match = html.match(/["\']?client_?[iI]d["\']?\s*[:=]\s*["\']([^"']+)["']/);
-    if (match?.[1]) return match[1];
-
-    return null;
-}
-
 async function authenticateAndGetData(username, password) {
     const cookies = {};
 
     try {
-        // Step 1: GET /authorize - extract client_id from response
-        // Start with a basic URL and let the server provide the full client_id
-        const baseAuthorizeUrl = `https://login.portswigger.net/authorize?redirect_uri=https://portswigger.net/signin-oidc&response_type=code&scope=openid+profile+email&code_challenge=${CODE_CHALLENGE}&code_challenge_method=S256&response_mode=query`;
-        let res = await makeRequest({ url: baseAuthorizeUrl, method: 'GET' }, null, cookies);
+        // Step 1: GET /authorize with Auth0 parameters
+        const nonce = generateNonce();
+        const state = generateState();
+        const auth0Client = Buffer.from(JSON.stringify({
+            name: 'aspnetcore-authentication',
+            version: '1.5.0'
+        })).toString('base64');
 
-        // Extract client_id from the response HTML
-        let dynamicClientId = extractClientId(res.body);
+        const authorizeUrl = `https://${AUTH0_DOMAIN}/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=openid+profile+email&code_challenge=${CODE_CHALLENGE}&code_challenge_method=S256&response_mode=form_post&nonce=${nonce}&auth0Client=${encodeURIComponent(auth0Client)}&state=${state}`;
 
-        // If not found in response, the server might have accepted the request
-        // Try extracting state first, then we'll proceed
-        if (!dynamicClientId) {
-            // Fallback: use the hardcoded one (for backwards compatibility)
-            dynamicClientId = 'F1PNGMosqeuuNO5cKQzDesrY2XzvPWGz';
+        let res = await makeRequest({ url: authorizeUrl, method: 'GET' }, null, cookies);
+
+        if (res.status !== 200) {
+            throw new Error(`Authorize page returned ${res.status}`);
         }
-
-        let state = res.body.match(/state=([^&\s'"]+)/)?.[1];
-
-        if (!state) throw new Error('State not found in authorize response');
 
         // Step 2: POST /u/login
         const loginData = urlencode({ username, password, action: 'default', state });
         res = await makeRequest(
             {
-                url: 'https://login.portswigger.net/u/login',
+                url: `https://${AUTH0_DOMAIN}/u/login`,
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -212,22 +204,30 @@ async function authenticateAndGetData(username, password) {
             cookies
         );
 
-        // Step 3: Follow redirects
-        let redirectUrl = res.location;
-        let redirectCount = 0;
+        // Step 3: Follow /authorize/resume redirect
+        if (!res.location) {
+            throw new Error('No redirect after login');
+        }
 
-        while (redirectUrl && redirectCount < MAX_REDIRECTS) {
+        let redirectUrl = res.location;
+        if (!redirectUrl.startsWith('http')) {
+            redirectUrl = `https://${AUTH0_DOMAIN}${redirectUrl.startsWith('/') ? '' : '/'}${redirectUrl}`;
+        }
+
+        res = await makeRequest({ url: redirectUrl, method: 'GET' }, null, cookies);
+
+        // Step 4: Follow remaining redirects (to /auth0/complete and beyond)
+        let redirectCount = 0;
+        while ((res.status === 302 || res.status === 301) && res.location && redirectCount < MAX_REDIRECTS) {
+            redirectUrl = res.location;
             if (!redirectUrl.startsWith('http')) {
-                redirectUrl = 'https://login.portswigger.net' + (redirectUrl.startsWith('/') ? '' : '/') + redirectUrl;
+                redirectUrl = 'https://portswigger.net' + (redirectUrl.startsWith('/') ? '' : '/') + redirectUrl;
             }
             res = await makeRequest({ url: redirectUrl, method: 'GET' }, null, cookies);
             redirectCount++;
-
-            if (res.status !== 302 && res.status !== 301) break;
-            redirectUrl = res.location;
         }
 
-        // Step 4: Get account page with subscriptions
+        // Step 5: Get subscriptions page
         res = await makeRequest(
             { url: 'https://portswigger.net/users/youraccount', method: 'GET' },
             null,
@@ -244,7 +244,7 @@ async function authenticateAndGetData(username, password) {
         }
 
         if (res.status === 200 && res.body.length > 500) {
-            // Personal details are on the same page, but fetch separately if available
+            // Get personal details (same page)
             const personalRes = await makeRequest(
                 { url: 'https://portswigger.net/users/youraccount', method: 'GET' },
                 null,
