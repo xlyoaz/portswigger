@@ -185,8 +185,18 @@ async function authenticateAndGetData(username, password) {
 
         let res = await makeRequest({ url: authorizeUrl, method: 'GET' }, null, cookies);
 
+        // /authorize endpoint may return 302 redirect or 200 with login form
+        // Follow redirect if needed
+        if ((res.status === 302 || res.status === 301) && res.location) {
+            let redirectUrl = res.location;
+            if (!redirectUrl.startsWith('http')) {
+                redirectUrl = `https://${AUTH0_DOMAIN}${redirectUrl.startsWith('/') ? '' : '/'}${redirectUrl}`;
+            }
+            res = await makeRequest({ url: redirectUrl, method: 'GET' }, null, cookies);
+        }
+
         if (res.status !== 200) {
-            throw new Error(`Authorize page returned ${res.status}`);
+            throw new Error(`Auth page returned ${res.status}`);
         }
 
         // Step 2: POST /u/login
