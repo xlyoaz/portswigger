@@ -4,8 +4,8 @@ import re
 import json
 from pathlib import Path
 
-EXTRACTION_DIR = Path('extraction_results')
-OUTPUT_FILE = Path('paid_accounts.txt')
+EXTRACTION_DIR = Path('Configs/extraction_results')
+OUTPUT_FILE = Path('Configs/paid_accounts.txt')
 
 def extract_subscription_from_html(html_content):
     """Extract subscription plan from HTML response"""
@@ -45,7 +45,7 @@ def main():
 
     # Read original log.txt to map emails to passwords
     accounts = {}
-    log_file = Path('log.txt')
+    log_file = Path('Configs/log.txt')
     if log_file.exists():
         with open(log_file, 'r') as f:
             for line in f:
@@ -141,9 +141,9 @@ def main():
         }
     }
 
-    with open('extraction_results.json', 'w') as f:
+    with open('Configs/extraction_results.json', 'w') as f:
         json.dump(results_json, f, indent=2)
-    print(f'✓ Detailed results saved to: extraction_results.json')
+    print(f'✓ Detailed results saved to: Configs/extraction_results.json')
 
 if __name__ == '__main__':
     main()
