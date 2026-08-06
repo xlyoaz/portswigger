@@ -1,0 +1,105 @@
+## Test login fix with glorywpill account
+## Using corrected variable substitution: build postdata as variable first
+
+SET VAR "baseUrl" "https://login.portswigger.net"
+SET VAR "planBaseUrl" "https://portswigger.net"
+SET VAR "email" "glorywpill@gmail.com"
+SET VAR "password" "Xlyoaz60863131.."
+
+PRINT "[*] Testing glorywpill@gmail.com with FIXED variable substitution"
+PRINT ""
+
+PRINT "Step 1: GET login page"
+HttpRequest GET $"<baseUrl>/u/login" AutoRedirect=True -> VAR "loginPageResponse"
+PRINT "✓ Login page fetched"
+PRINT ""
+
+PRINT "Step 2: Building POST data as variable"
+SET VAR "postdata" "username=$<email>&password=$<password>&action=default"
+PRINT "POST data: $<postdata>"
+PRINT ""
+
+PRINT "Step 3: POST credentials using the variable"
+HttpRequest POST $"<baseUrl>/u/login" AutoRedirect=True
+  CONTENT $"<postdata>"
+  CONTENTTYPE "application/x-www-form-urlencoded"
+  -> VAR "loginResponse"
+PRINT "✓ Credentials posted"
+PRINT ""
+
+PRINT "Step 4: Checking login response for errors"
+IF $"<loginResponse>" Contains "error"
+  PRINT "❌ ERROR DETECTED in response"
+ELSE
+  PRINT "✓ No error keyword in response"
+ENDIF
+
+IF $"<loginResponse>" Contains "Log in to PortSwigger"
+  PRINT "⚠ Still on login page - login may have failed"
+ELSE
+  PRINT "✓ Response doesn't show login page"
+ENDIF
+
+PRINT ""
+
+PRINT "Step 5: Saving login response for inspection"
+FileWrite "login_response_debug.html" $"<loginResponse>"
+PRINT "✓ Saved to: login_response_debug.html"
+PRINT ""
+
+PRINT "Step 6: GET personal details page"
+HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "pdResponse"
+PRINT "✓ Personal details page fetched"
+PRINT ""
+
+PRINT "Step 7: Saving personal details HTML"
+FileWrite "personal_details_glorywpill.html" $"<pdResponse>"
+PRINT "✓ Saved to: personal_details_glorywpill.html"
+PRINT ""
+
+PRINT "Step 8: Checking for plan information"
+SET VAR "foundPlan" "none"
+
+IF $"<pdResponse>" Contains "Professional"
+  SET VAR "foundPlan" "Professional"
+  PRINT "✓ Found: Professional"
+ELSE
+  PRINT "- Professional not found"
+ENDIF
+
+IF $"<pdResponse>" Contains "Enterprise"
+  SET VAR "foundPlan" "Enterprise"
+  PRINT "✓ Found: Enterprise"
+ELSE
+  PRINT "- Enterprise not found"
+ENDIF
+
+IF $"<pdResponse>" Contains "Community"
+  SET VAR "foundPlan" "Community"
+  PRINT "✓ Found: Community"
+ELSE
+  PRINT "- Community not found"
+ENDIF
+
+IF $"<pdResponse>" Contains "Free"
+  SET VAR "foundPlan" "Free"
+  PRINT "- Found: Free (not paid)"
+ELSE
+  PRINT "- Free plan not found"
+ENDIF
+
+PRINT ""
+PRINT "Final plan detected: $<foundPlan>"
+PRINT ""
+
+PRINT "============================================================"
+IF $"<foundPlan>" != "none"
+  PRINT "✓ SUCCESS - Plan information extracted"
+ELSE
+  PRINT "⚠ No plan information found - check HTML files for details"
+ENDIF
+PRINT "============================================================"
+PRINT "HTML files saved for inspection:"
+PRINT "- login_response_debug.html (login POST response)"
+PRINT "- personal_details_glorywpill.html (account page)"
+PRINT "============================================================"

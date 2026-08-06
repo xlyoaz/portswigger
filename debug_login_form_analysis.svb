@@ -1,0 +1,92 @@
+## Debug login form structure - analyze what the login page expects
+## Extract and display form fields to understand CSRF/security requirements
+
+SET VAR "baseUrl" "https://login.portswigger.net"
+SET VAR "email" "glorywpill@gmail.com"
+SET VAR "password" "Xlyoaz60863131.."
+
+PRINT "[*] Analyzing PortSwigger login form structure"
+PRINT ""
+
+PRINT "Step 1: Fetching login page..."
+HttpRequest GET $"<baseUrl>/u/login" AutoRedirect=True -> VAR "loginPageResponse"
+PRINT "✓ Login page fetched"
+PRINT ""
+
+PRINT "Step 2: Saving login page HTML to file for inspection..."
+FileWrite "login_form_debug.html" $"<loginPageResponse>"
+PRINT "✓ Saved to: login_form_debug.html"
+PRINT ""
+
+PRINT "Step 3: Checking form fields in login page..."
+PRINT ""
+
+## Check for common CSRF token field names
+IF $"<loginPageResponse>" Contains "csrf"
+  PRINT "✓ Found 'csrf' in login page"
+ELSE
+  PRINT "✗ No 'csrf' found"
+ENDIF
+
+IF $"<loginPageResponse>" Contains "_csrf"
+  PRINT "✓ Found '_csrf' in login page"
+ELSE
+  PRINT "✗ No '_csrf' found"
+ENDIF
+
+IF $"<loginPageResponse>" Contains "authenticity_token"
+  PRINT "✓ Found 'authenticity_token' in login page"
+ELSE
+  PRINT "✗ No 'authenticity_token' found"
+ENDIF
+
+IF $"<loginPageResponse>" Contains "nonce"
+  PRINT "✓ Found 'nonce' in login page"
+ELSE
+  PRINT "✗ No 'nonce' found"
+ENDIF
+
+PRINT ""
+
+PRINT "Step 4: Checking for state parameter..."
+IF $"<loginPageResponse>" Contains "state"
+  PRINT "✓ Found 'state' parameter"
+ELSE
+  PRINT "✗ No 'state' parameter"
+ENDIF
+
+PRINT ""
+
+PRINT "Step 5: Checking for Auth0 indicators..."
+IF $"<loginPageResponse>" Contains "auth0"
+  PRINT "✓ Found 'auth0' - uses Auth0 authentication"
+ELSE
+  PRINT "✗ No auth0 found"
+ENDIF
+
+IF $"<loginPageResponse>" Contains "authorize"
+  PRINT "✓ Found 'authorize' endpoint"
+ELSE
+  PRINT "✗ No authorize endpoint"
+ENDIF
+
+PRINT ""
+
+PRINT "Step 6: Checking form action attribute..."
+IF $"<loginPageResponse>" Contains "action="
+  PRINT "✓ Login form has action attribute"
+ELSE
+  PRINT "✗ No form action attribute found"
+ENDIF
+
+PRINT ""
+
+PRINT "============================================================"
+PRINT "ANALYSIS COMPLETE"
+PRINT "============================================================"
+PRINT "Check login_form_debug.html to inspect:"
+PRINT "- Form action URL"
+PRINT "- All form field names"
+PRINT "- Hidden fields and tokens"
+PRINT "- Script-based form submissions"
+PRINT "============================================================"
