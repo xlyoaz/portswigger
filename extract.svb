@@ -13,9 +13,8 @@ SET VAR "password" $"<creds[1]>"
 PRINT "Processing first account" White
 
 ## Step 1: GET login page
-HttpRequest GET "https://login.portswigger.net/u/login" ReadResponseSource=True
-  TIMEOUT 30000
-  -> VAR "loginPageRes"
+HttpRequest GET "https://login.portswigger.net/u/login"
+SET VAR "loginPageRes" $"<SOURCE>"
 
 PRINT "Step 1: Login page received" White
 
@@ -28,18 +27,18 @@ FileAppend "temp_post.txt" "&action=default"
 
 FileRead "temp_post.txt" -> VAR "postData"
 
-HttpRequest POST "https://login.portswigger.net/u/login" ReadResponseSource=True
+HttpRequest POST "https://login.portswigger.net/u/login"
   CONTENT $"<postData>"
   CONTENTTYPE "application/x-www-form-urlencoded"
-  TIMEOUT 30000
-  -> VAR "loginRes"
+
+SET VAR "loginRes" $"<SOURCE>"
 
 PRINT "Step 2: Login completed" White
 
 ## Step 3: GET licenses page
-HttpRequest GET "https://portswigger.net/users/youraccount/licenses" ReadResponseSource=True
-  TIMEOUT 30000
-  -> VAR "licensesRes"
+HttpRequest GET "https://portswigger.net/users/youraccount/licenses"
+
+SET VAR "licensesRes" $"<SOURCE>"
 
 PRINT "Step 3: Licenses page received" White
 
