@@ -8,10 +8,10 @@ PRINT "Loaded accounts" White
 ## Extract first account
 SET VAR "account" $"<accounts[0]>"
 
-## Split by colon and access results with literal context syntax
+## Split by colon - creates creds_0, creds_1, etc.
 Split $"<account>" ":" -> VAR "creds"
-SET VAR "email" <creds[0]>
-SET VAR "password" <creds[1]>
+SET VAR "email" $"<creds_0>"
+SET VAR "password" $"<creds_1>"
 
 PRINT "Account: <email>" White
 
