@@ -1,0 +1,98 @@
+## Extract and use OAuth2 state parameter from login form
+## Using SvbScript Parse LR method to dynamically extract the state token
+
+SET VAR "baseUrl" "https://login.portswigger.net"
+SET VAR "planBaseUrl" "https://portswigger.net"
+SET VAR "email" "glorywpill@gmail.com"
+SET VAR "password" "Xlyoaz60863131.."
+
+PRINT "[*] Testing with Dynamic State Parameter Extraction"
+PRINT ""
+
+PRINT "Step 1: GET login page..."
+HttpRequest GET $"<baseUrl>/u/login" AutoRedirect=True -> VAR "loginPage"
+PRINT "✓ Login page fetched"
+PRINT ""
+
+PRINT "Step 2: Extracting state parameter using Parse LR method..."
+Parse $"<loginPage>" LR "state=\"" "\"" -> VAR "STATE_TOKEN"
+PRINT "✓ State extracted: $<STATE_TOKEN>"
+PRINT ""
+
+PRINT "Step 3: Building complete POST data with state..."
+SET VAR "postdata" "state=$<STATE_TOKEN>&username=$<email>&password=$<password>&action=default"
+PRINT "POST data: $<postdata>"
+PRINT ""
+
+PRINT "Step 4: POST credentials with state parameter..."
+HttpRequest POST $"<baseUrl>/u/login" AutoRedirect=True
+  CONTENT $"<postdata>"
+  CONTENTTYPE "application/x-www-form-urlencoded"
+  -> VAR "loginResponse"
+PRINT "✓ Credentials posted"
+PRINT ""
+
+PRINT "Step 5: Saving login response..."
+FileWrite "login_response_with_state.html" $"<loginResponse>"
+PRINT "✓ Saved to: login_response_with_state.html"
+PRINT ""
+
+PRINT "Step 6: Checking login response..."
+IF $"<loginResponse>" Contains "error"
+  PRINT "❌ ERROR in response"
+ELSE
+  PRINT "✓ No error keyword"
+ENDIF
+
+IF $"<loginResponse>" Contains "Log in to PortSwigger"
+  PRINT "⚠ Still showing login page"
+ELSE
+  PRINT "✓ Not on login page"
+ENDIF
+
+PRINT ""
+
+PRINT "Step 7: GET personal details..."
+HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "pdResponse"
+PRINT "✓ Personal details fetched"
+PRINT ""
+
+PRINT "Step 8: Saving personal details..."
+FileWrite "personal_details_with_state.html" $"<pdResponse>"
+PRINT "✓ Saved to: personal_details_with_state.html"
+PRINT ""
+
+PRINT "Step 9: Checking for plan information..."
+SET VAR "foundPlan" "none"
+
+IF $"<pdResponse>" Contains "Professional"
+  SET VAR "foundPlan" "Professional"
+  PRINT "✓ Found: Professional"
+ENDIF
+
+IF $"<pdResponse>" Contains "Enterprise"
+  SET VAR "foundPlan" "Enterprise"
+  PRINT "✓ Found: Enterprise"
+ENDIF
+
+IF $"<pdResponse>" Contains "Community"
+  SET VAR "foundPlan" "Community"
+  PRINT "✓ Found: Community"
+ENDIF
+
+IF $"<pdResponse>" Contains "Free"
+  PRINT "- Free plan detected"
+ENDIF
+
+PRINT ""
+PRINT "Plan found: $<foundPlan>"
+PRINT ""
+
+PRINT "============================================================"
+IF $"<foundPlan>" != "none"
+  PRINT "✓✓✓ SUCCESS! Login worked with state parameter!"
+  PRINT "Plan: $<foundPlan>"
+ELSE
+  PRINT "⚠ Check HTML files for results"
+ENDIF
+PRINT "============================================================"
