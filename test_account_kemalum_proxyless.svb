@@ -1,4 +1,4 @@
-## Test with kemalum@gmail.com account - NO PROXY
+## Test with kemalum@gmail.com account - Direct Connection
 ## Login and fetch personaldetails page as HTML
 ## Authorization: ROE-2026-PSW-042-V5
 
@@ -6,7 +6,7 @@ SET VAR "baseUrl" "https://login.portswigger.net"
 SET VAR "planBaseUrl" "https://portswigger.net"
 SET VAR "outputFile" "personaldetails_kemalum_direct.html"
 
-PRINT "[*] Testing with kemalum@gmail.com account (PROXYLESS)"
+PRINT "[*] Testing with kemalum@gmail.com account (DIRECT)"
 PRINT ""
 
 SET VAR "email" "kemalum@gmail.com"
@@ -18,13 +18,13 @@ PRINT ""
 
 ## Step 1: GET login page
 PRINT "Step 1: Fetching login page..."
-HttpRequest GET $"<baseUrl>/u/login" AutoRedirect=True UseProxy=False -> VAR "lr1"
+HttpRequest GET $"<baseUrl>/u/login" AutoRedirect=True -> VAR "lr1"
 PRINT "✓ Login page fetched"
 PRINT ""
 
 ## Step 2: POST credentials
 PRINT "Step 2: Posting credentials..."
-HttpRequest POST $"<baseUrl>/u/login" AutoRedirect=True UseProxy=False
+HttpRequest POST $"<baseUrl>/u/login" AutoRedirect=True
   CONTENT "username=$<email>&password=$<password>&action=default"
   CONTENTTYPE "application/x-www-form-urlencoded"
   -> VAR "lr2"
@@ -33,7 +33,7 @@ PRINT ""
 
 ## Step 3: Fetch personal details page
 PRINT "Step 3: Fetching personal details page..."
-HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True UseProxy=False -> VAR "pdRes"
+HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "pdRes"
 PRINT "✓ Personal details page fetched"
 PRINT ""
 
@@ -44,7 +44,7 @@ PRINT "✓ HTML saved to: $<outputFile>"
 PRINT ""
 
 PRINT "============================================================"
-PRINT "TEST COMPLETE - PROXYLESS"
+PRINT "TEST COMPLETE"
 PRINT "============================================================"
 PRINT "HTML file: $<outputFile>"
 PRINT "Check the file to see if plan information is available"
