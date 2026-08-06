@@ -10,8 +10,8 @@ PRINT "[*] PortSwigger Subscription Plan Extractor"
 PRINT "[*] Authorization: ROE-2026-PSW-042-V5"
 PRINT ""
 
-## Delete old results
-FileDelete $"<outputFile>" IgnoreError=True
+## Delete old results file if exists
+FileDelete $"<outputFile>"
 
 ## Write CSV header
 FileWrite $"<outputFile>" "email,password,plan"
