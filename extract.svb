@@ -7,9 +7,14 @@ PRINT "Loaded accounts" White
 
 ## Extract first account
 SET VAR "account" $"<accounts[0]>"
-Split $"<account>" ":" -> VAR "creds"
-SET VAR "email" $"<creds[0]>"
-SET VAR "password" $"<creds[1]>"
+
+## Find colon position and extract email/password using substring
+String.IndexOf $"<account>" ":" -> VAR "colonPos"
+String.Substring $"<account>" 0 $"<colonPos>" -> VAR "email"
+
+## Calculate password position (after colon)
+Math.Add $"<colonPos>" 1 -> VAR "passStart"
+String.Substring $"<account>" $"<passStart>" -> VAR "password"
 
 PRINT "Account: <email>" White
 
