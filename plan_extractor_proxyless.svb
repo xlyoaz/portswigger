@@ -11,7 +11,8 @@ PRINT "[*] Processing 217 accounts..."
 PRINT ""
 
 ## Initialize output file with header
-FileWrite $"<outputFile>" "email,password,plan"
+SET VAR "csvheader" "email,password,plan"
+FileWrite $"<outputFile>" $"<csvheader>"
 PRINT "✓ Output file initialized: $<outputFile>"
 PRINT ""
 
