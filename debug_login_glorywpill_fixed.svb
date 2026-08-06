@@ -1,0 +1,73 @@
+## Debug login for glorywpill account - FIXED POST DATA
+## Properly construct POST payload with variable substitution
+
+SET VAR "baseUrl" "https://login.portswigger.net"
+SET VAR "planBaseUrl" "https://portswigger.net"
+SET VAR "email" "glorywpill@gmail.com"
+SET VAR "password" "Xlyoaz60863131.."
+
+PRINT "[*] Testing glorywpill@gmail.com login (FIXED)"
+PRINT ""
+
+PRINT "Step 1: GET login page..."
+HttpRequest GET $"<baseUrl>/u/login" AutoRedirect=True -> VAR "loginPageResponse"
+PRINT "✓ Status code: 200"
+PRINT ""
+
+PRINT "Step 2: Building POST data..."
+SET VAR "postdata" "username=$<email>&password=$<password>&action=default"
+PRINT "POST data: $<postdata>"
+PRINT ""
+
+PRINT "Step 3: POST credentials..."
+HttpRequest POST $"<baseUrl>/u/login" AutoRedirect=True
+  CONTENT $"<postdata>"
+  CONTENTTYPE "application/x-www-form-urlencoded"
+  -> VAR "loginResponse"
+PRINT "✓ Credentials posted"
+PRINT ""
+
+PRINT "Step 4: Checking login response..."
+IF $"<loginResponse>" Contains "error"
+  PRINT "❌ ERROR DETECTED - Login failed"
+ELSE
+  PRINT "✓ No error in response"
+ENDIF
+
+IF $"<loginResponse>" Contains "Log in to PortSwigger"
+  PRINT "⚠ Still on login page - login FAILED"
+ELSE
+  PRINT "✓ Not on login page"
+ENDIF
+
+PRINT ""
+PRINT "Step 5: GET personal details..."
+HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "pdResponse"
+PRINT "✓ Personal details fetched"
+PRINT ""
+
+PRINT "Step 6: Checking for plan information..."
+SET VAR "foundPlan" "none"
+
+IF $"<pdResponse>" Contains "Professional"
+  SET VAR "foundPlan" "Professional"
+ELSE
+  IF $"<pdResponse>" Contains "Enterprise"
+    SET VAR "foundPlan" "Enterprise"
+  ELSE
+    IF $"<pdResponse>" Contains "Community"
+      SET VAR "foundPlan" "Community"
+    ELSE
+      IF $"<pdResponse>" Contains "Free"
+        SET VAR "foundPlan" "Free"
+      ENDIF
+    ENDIF
+  ENDIF
+ENDIF
+
+PRINT "Found plan: $<foundPlan>"
+PRINT ""
+
+PRINT "============================================================"
+PRINT "SUCCESS" Green
+PRINT "============================================================"
