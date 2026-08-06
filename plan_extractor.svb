@@ -23,7 +23,7 @@ TRY
     CONTENT "username=$<email1>&password=$<password1>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_1"
-  HttpRequest GET $"<planBaseUrl>/users/$<email1>/licenses" AutoRedirect=True -> VAR "l3_1"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_1"
   
   SET VAR "plan" "free"
   IF $"<l3_1>" Contains "Professional"
@@ -60,7 +60,7 @@ TRY
     CONTENT "username=$<email2>&password=$<password2>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_2"
-  HttpRequest GET $"<planBaseUrl>/users/$<email2>/licenses" AutoRedirect=True -> VAR "l3_2"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_2"
   
   SET VAR "plan" "free"
   IF $"<l3_2>" Contains "Professional"
@@ -97,7 +97,7 @@ TRY
     CONTENT "username=$<email3>&password=$<password3>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_3"
-  HttpRequest GET $"<planBaseUrl>/users/$<email3>/licenses" AutoRedirect=True -> VAR "l3_3"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_3"
   
   SET VAR "plan" "free"
   IF $"<l3_3>" Contains "Professional"
@@ -134,7 +134,7 @@ TRY
     CONTENT "username=$<email4>&password=$<password4>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_4"
-  HttpRequest GET $"<planBaseUrl>/users/$<email4>/licenses" AutoRedirect=True -> VAR "l3_4"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_4"
   
   SET VAR "plan" "free"
   IF $"<l3_4>" Contains "Professional"
@@ -171,7 +171,7 @@ TRY
     CONTENT "username=$<email5>&password=$<password5>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_5"
-  HttpRequest GET $"<planBaseUrl>/users/$<email5>/licenses" AutoRedirect=True -> VAR "l3_5"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_5"
   
   SET VAR "plan" "free"
   IF $"<l3_5>" Contains "Professional"
@@ -208,7 +208,7 @@ TRY
     CONTENT "username=$<email6>&password=$<password6>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_6"
-  HttpRequest GET $"<planBaseUrl>/users/$<email6>/licenses" AutoRedirect=True -> VAR "l3_6"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_6"
   
   SET VAR "plan" "free"
   IF $"<l3_6>" Contains "Professional"
@@ -245,7 +245,7 @@ TRY
     CONTENT "username=$<email7>&password=$<password7>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_7"
-  HttpRequest GET $"<planBaseUrl>/users/$<email7>/licenses" AutoRedirect=True -> VAR "l3_7"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_7"
   
   SET VAR "plan" "free"
   IF $"<l3_7>" Contains "Professional"
@@ -282,7 +282,7 @@ TRY
     CONTENT "username=$<email8>&password=$<password8>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_8"
-  HttpRequest GET $"<planBaseUrl>/users/$<email8>/licenses" AutoRedirect=True -> VAR "l3_8"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_8"
   
   SET VAR "plan" "free"
   IF $"<l3_8>" Contains "Professional"
@@ -319,7 +319,7 @@ TRY
     CONTENT "username=$<email9>&password=$<password9>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_9"
-  HttpRequest GET $"<planBaseUrl>/users/$<email9>/licenses" AutoRedirect=True -> VAR "l3_9"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_9"
   
   SET VAR "plan" "free"
   IF $"<l3_9>" Contains "Professional"
@@ -356,7 +356,7 @@ TRY
     CONTENT "username=$<email10>&password=$<password10>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_10"
-  HttpRequest GET $"<planBaseUrl>/users/$<email10>/licenses" AutoRedirect=True -> VAR "l3_10"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_10"
   
   SET VAR "plan" "free"
   IF $"<l3_10>" Contains "Professional"
@@ -393,7 +393,7 @@ TRY
     CONTENT "username=$<email11>&password=$<password11>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_11"
-  HttpRequest GET $"<planBaseUrl>/users/$<email11>/licenses" AutoRedirect=True -> VAR "l3_11"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_11"
   
   SET VAR "plan" "free"
   IF $"<l3_11>" Contains "Professional"
@@ -430,7 +430,7 @@ TRY
     CONTENT "username=$<email12>&password=$<password12>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_12"
-  HttpRequest GET $"<planBaseUrl>/users/$<email12>/licenses" AutoRedirect=True -> VAR "l3_12"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_12"
   
   SET VAR "plan" "free"
   IF $"<l3_12>" Contains "Professional"
@@ -467,7 +467,7 @@ TRY
     CONTENT "username=$<email13>&password=$<password13>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_13"
-  HttpRequest GET $"<planBaseUrl>/users/$<email13>/licenses" AutoRedirect=True -> VAR "l3_13"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_13"
   
   SET VAR "plan" "free"
   IF $"<l3_13>" Contains "Professional"
@@ -504,7 +504,7 @@ TRY
     CONTENT "username=$<email14>&password=$<password14>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_14"
-  HttpRequest GET $"<planBaseUrl>/users/$<email14>/licenses" AutoRedirect=True -> VAR "l3_14"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_14"
   
   SET VAR "plan" "free"
   IF $"<l3_14>" Contains "Professional"
@@ -541,7 +541,7 @@ TRY
     CONTENT "username=$<email15>&password=$<password15>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_15"
-  HttpRequest GET $"<planBaseUrl>/users/$<email15>/licenses" AutoRedirect=True -> VAR "l3_15"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_15"
   
   SET VAR "plan" "free"
   IF $"<l3_15>" Contains "Professional"
@@ -578,7 +578,7 @@ TRY
     CONTENT "username=$<email16>&password=$<password16>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_16"
-  HttpRequest GET $"<planBaseUrl>/users/$<email16>/licenses" AutoRedirect=True -> VAR "l3_16"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_16"
   
   SET VAR "plan" "free"
   IF $"<l3_16>" Contains "Professional"
@@ -615,7 +615,7 @@ TRY
     CONTENT "username=$<email17>&password=$<password17>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_17"
-  HttpRequest GET $"<planBaseUrl>/users/$<email17>/licenses" AutoRedirect=True -> VAR "l3_17"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_17"
   
   SET VAR "plan" "free"
   IF $"<l3_17>" Contains "Professional"
@@ -652,7 +652,7 @@ TRY
     CONTENT "username=$<email18>&password=$<password18>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_18"
-  HttpRequest GET $"<planBaseUrl>/users/$<email18>/licenses" AutoRedirect=True -> VAR "l3_18"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_18"
   
   SET VAR "plan" "free"
   IF $"<l3_18>" Contains "Professional"
@@ -689,7 +689,7 @@ TRY
     CONTENT "username=$<email19>&password=$<password19>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_19"
-  HttpRequest GET $"<planBaseUrl>/users/$<email19>/licenses" AutoRedirect=True -> VAR "l3_19"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_19"
   
   SET VAR "plan" "free"
   IF $"<l3_19>" Contains "Professional"
@@ -726,7 +726,7 @@ TRY
     CONTENT "username=$<email20>&password=$<password20>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_20"
-  HttpRequest GET $"<planBaseUrl>/users/$<email20>/licenses" AutoRedirect=True -> VAR "l3_20"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_20"
   
   SET VAR "plan" "free"
   IF $"<l3_20>" Contains "Professional"
@@ -763,7 +763,7 @@ TRY
     CONTENT "username=$<email21>&password=$<password21>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_21"
-  HttpRequest GET $"<planBaseUrl>/users/$<email21>/licenses" AutoRedirect=True -> VAR "l3_21"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_21"
   
   SET VAR "plan" "free"
   IF $"<l3_21>" Contains "Professional"
@@ -800,7 +800,7 @@ TRY
     CONTENT "username=$<email22>&password=$<password22>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_22"
-  HttpRequest GET $"<planBaseUrl>/users/$<email22>/licenses" AutoRedirect=True -> VAR "l3_22"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_22"
   
   SET VAR "plan" "free"
   IF $"<l3_22>" Contains "Professional"
@@ -837,7 +837,7 @@ TRY
     CONTENT "username=$<email23>&password=$<password23>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_23"
-  HttpRequest GET $"<planBaseUrl>/users/$<email23>/licenses" AutoRedirect=True -> VAR "l3_23"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_23"
   
   SET VAR "plan" "free"
   IF $"<l3_23>" Contains "Professional"
@@ -874,7 +874,7 @@ TRY
     CONTENT "username=$<email24>&password=$<password24>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_24"
-  HttpRequest GET $"<planBaseUrl>/users/$<email24>/licenses" AutoRedirect=True -> VAR "l3_24"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_24"
   
   SET VAR "plan" "free"
   IF $"<l3_24>" Contains "Professional"
@@ -911,7 +911,7 @@ TRY
     CONTENT "username=$<email25>&password=$<password25>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_25"
-  HttpRequest GET $"<planBaseUrl>/users/$<email25>/licenses" AutoRedirect=True -> VAR "l3_25"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_25"
   
   SET VAR "plan" "free"
   IF $"<l3_25>" Contains "Professional"
@@ -948,7 +948,7 @@ TRY
     CONTENT "username=$<email26>&password=$<password26>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_26"
-  HttpRequest GET $"<planBaseUrl>/users/$<email26>/licenses" AutoRedirect=True -> VAR "l3_26"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_26"
   
   SET VAR "plan" "free"
   IF $"<l3_26>" Contains "Professional"
@@ -985,7 +985,7 @@ TRY
     CONTENT "username=$<email27>&password=$<password27>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_27"
-  HttpRequest GET $"<planBaseUrl>/users/$<email27>/licenses" AutoRedirect=True -> VAR "l3_27"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_27"
   
   SET VAR "plan" "free"
   IF $"<l3_27>" Contains "Professional"
@@ -1022,7 +1022,7 @@ TRY
     CONTENT "username=$<email28>&password=$<password28>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_28"
-  HttpRequest GET $"<planBaseUrl>/users/$<email28>/licenses" AutoRedirect=True -> VAR "l3_28"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_28"
   
   SET VAR "plan" "free"
   IF $"<l3_28>" Contains "Professional"
@@ -1059,7 +1059,7 @@ TRY
     CONTENT "username=$<email29>&password=$<password29>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_29"
-  HttpRequest GET $"<planBaseUrl>/users/$<email29>/licenses" AutoRedirect=True -> VAR "l3_29"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_29"
   
   SET VAR "plan" "free"
   IF $"<l3_29>" Contains "Professional"
@@ -1096,7 +1096,7 @@ TRY
     CONTENT "username=$<email30>&password=$<password30>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_30"
-  HttpRequest GET $"<planBaseUrl>/users/$<email30>/licenses" AutoRedirect=True -> VAR "l3_30"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_30"
   
   SET VAR "plan" "free"
   IF $"<l3_30>" Contains "Professional"
@@ -1133,7 +1133,7 @@ TRY
     CONTENT "username=$<email31>&password=$<password31>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_31"
-  HttpRequest GET $"<planBaseUrl>/users/$<email31>/licenses" AutoRedirect=True -> VAR "l3_31"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_31"
   
   SET VAR "plan" "free"
   IF $"<l3_31>" Contains "Professional"
@@ -1170,7 +1170,7 @@ TRY
     CONTENT "username=$<email32>&password=$<password32>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_32"
-  HttpRequest GET $"<planBaseUrl>/users/$<email32>/licenses" AutoRedirect=True -> VAR "l3_32"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_32"
   
   SET VAR "plan" "free"
   IF $"<l3_32>" Contains "Professional"
@@ -1207,7 +1207,7 @@ TRY
     CONTENT "username=$<email33>&password=$<password33>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_33"
-  HttpRequest GET $"<planBaseUrl>/users/$<email33>/licenses" AutoRedirect=True -> VAR "l3_33"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_33"
   
   SET VAR "plan" "free"
   IF $"<l3_33>" Contains "Professional"
@@ -1244,7 +1244,7 @@ TRY
     CONTENT "username=$<email34>&password=$<password34>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_34"
-  HttpRequest GET $"<planBaseUrl>/users/$<email34>/licenses" AutoRedirect=True -> VAR "l3_34"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_34"
   
   SET VAR "plan" "free"
   IF $"<l3_34>" Contains "Professional"
@@ -1281,7 +1281,7 @@ TRY
     CONTENT "username=$<email35>&password=$<password35>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_35"
-  HttpRequest GET $"<planBaseUrl>/users/$<email35>/licenses" AutoRedirect=True -> VAR "l3_35"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_35"
   
   SET VAR "plan" "free"
   IF $"<l3_35>" Contains "Professional"
@@ -1318,7 +1318,7 @@ TRY
     CONTENT "username=$<email36>&password=$<password36>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_36"
-  HttpRequest GET $"<planBaseUrl>/users/$<email36>/licenses" AutoRedirect=True -> VAR "l3_36"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_36"
   
   SET VAR "plan" "free"
   IF $"<l3_36>" Contains "Professional"
@@ -1355,7 +1355,7 @@ TRY
     CONTENT "username=$<email37>&password=$<password37>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_37"
-  HttpRequest GET $"<planBaseUrl>/users/$<email37>/licenses" AutoRedirect=True -> VAR "l3_37"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_37"
   
   SET VAR "plan" "free"
   IF $"<l3_37>" Contains "Professional"
@@ -1392,7 +1392,7 @@ TRY
     CONTENT "username=$<email38>&password=$<password38>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_38"
-  HttpRequest GET $"<planBaseUrl>/users/$<email38>/licenses" AutoRedirect=True -> VAR "l3_38"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_38"
   
   SET VAR "plan" "free"
   IF $"<l3_38>" Contains "Professional"
@@ -1429,7 +1429,7 @@ TRY
     CONTENT "username=$<email39>&password=$<password39>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_39"
-  HttpRequest GET $"<planBaseUrl>/users/$<email39>/licenses" AutoRedirect=True -> VAR "l3_39"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_39"
   
   SET VAR "plan" "free"
   IF $"<l3_39>" Contains "Professional"
@@ -1466,7 +1466,7 @@ TRY
     CONTENT "username=$<email40>&password=$<password40>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_40"
-  HttpRequest GET $"<planBaseUrl>/users/$<email40>/licenses" AutoRedirect=True -> VAR "l3_40"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_40"
   
   SET VAR "plan" "free"
   IF $"<l3_40>" Contains "Professional"
@@ -1503,7 +1503,7 @@ TRY
     CONTENT "username=$<email41>&password=$<password41>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_41"
-  HttpRequest GET $"<planBaseUrl>/users/$<email41>/licenses" AutoRedirect=True -> VAR "l3_41"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_41"
   
   SET VAR "plan" "free"
   IF $"<l3_41>" Contains "Professional"
@@ -1540,7 +1540,7 @@ TRY
     CONTENT "username=$<email42>&password=$<password42>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_42"
-  HttpRequest GET $"<planBaseUrl>/users/$<email42>/licenses" AutoRedirect=True -> VAR "l3_42"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_42"
   
   SET VAR "plan" "free"
   IF $"<l3_42>" Contains "Professional"
@@ -1577,7 +1577,7 @@ TRY
     CONTENT "username=$<email43>&password=$<password43>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_43"
-  HttpRequest GET $"<planBaseUrl>/users/$<email43>/licenses" AutoRedirect=True -> VAR "l3_43"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_43"
   
   SET VAR "plan" "free"
   IF $"<l3_43>" Contains "Professional"
@@ -1614,7 +1614,7 @@ TRY
     CONTENT "username=$<email44>&password=$<password44>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_44"
-  HttpRequest GET $"<planBaseUrl>/users/$<email44>/licenses" AutoRedirect=True -> VAR "l3_44"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_44"
   
   SET VAR "plan" "free"
   IF $"<l3_44>" Contains "Professional"
@@ -1651,7 +1651,7 @@ TRY
     CONTENT "username=$<email45>&password=$<password45>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_45"
-  HttpRequest GET $"<planBaseUrl>/users/$<email45>/licenses" AutoRedirect=True -> VAR "l3_45"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_45"
   
   SET VAR "plan" "free"
   IF $"<l3_45>" Contains "Professional"
@@ -1688,7 +1688,7 @@ TRY
     CONTENT "username=$<email46>&password=$<password46>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_46"
-  HttpRequest GET $"<planBaseUrl>/users/$<email46>/licenses" AutoRedirect=True -> VAR "l3_46"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_46"
   
   SET VAR "plan" "free"
   IF $"<l3_46>" Contains "Professional"
@@ -1725,7 +1725,7 @@ TRY
     CONTENT "username=$<email47>&password=$<password47>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_47"
-  HttpRequest GET $"<planBaseUrl>/users/$<email47>/licenses" AutoRedirect=True -> VAR "l3_47"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_47"
   
   SET VAR "plan" "free"
   IF $"<l3_47>" Contains "Professional"
@@ -1762,7 +1762,7 @@ TRY
     CONTENT "username=$<email48>&password=$<password48>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_48"
-  HttpRequest GET $"<planBaseUrl>/users/$<email48>/licenses" AutoRedirect=True -> VAR "l3_48"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_48"
   
   SET VAR "plan" "free"
   IF $"<l3_48>" Contains "Professional"
@@ -1799,7 +1799,7 @@ TRY
     CONTENT "username=$<email49>&password=$<password49>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_49"
-  HttpRequest GET $"<planBaseUrl>/users/$<email49>/licenses" AutoRedirect=True -> VAR "l3_49"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_49"
   
   SET VAR "plan" "free"
   IF $"<l3_49>" Contains "Professional"
@@ -1836,7 +1836,7 @@ TRY
     CONTENT "username=$<email50>&password=$<password50>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_50"
-  HttpRequest GET $"<planBaseUrl>/users/$<email50>/licenses" AutoRedirect=True -> VAR "l3_50"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_50"
   
   SET VAR "plan" "free"
   IF $"<l3_50>" Contains "Professional"
@@ -1873,7 +1873,7 @@ TRY
     CONTENT "username=$<email51>&password=$<password51>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_51"
-  HttpRequest GET $"<planBaseUrl>/users/$<email51>/licenses" AutoRedirect=True -> VAR "l3_51"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_51"
   
   SET VAR "plan" "free"
   IF $"<l3_51>" Contains "Professional"
@@ -1910,7 +1910,7 @@ TRY
     CONTENT "username=$<email52>&password=$<password52>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_52"
-  HttpRequest GET $"<planBaseUrl>/users/$<email52>/licenses" AutoRedirect=True -> VAR "l3_52"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_52"
   
   SET VAR "plan" "free"
   IF $"<l3_52>" Contains "Professional"
@@ -1947,7 +1947,7 @@ TRY
     CONTENT "username=$<email53>&password=$<password53>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_53"
-  HttpRequest GET $"<planBaseUrl>/users/$<email53>/licenses" AutoRedirect=True -> VAR "l3_53"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_53"
   
   SET VAR "plan" "free"
   IF $"<l3_53>" Contains "Professional"
@@ -1984,7 +1984,7 @@ TRY
     CONTENT "username=$<email54>&password=$<password54>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_54"
-  HttpRequest GET $"<planBaseUrl>/users/$<email54>/licenses" AutoRedirect=True -> VAR "l3_54"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_54"
   
   SET VAR "plan" "free"
   IF $"<l3_54>" Contains "Professional"
@@ -2021,7 +2021,7 @@ TRY
     CONTENT "username=$<email55>&password=$<password55>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_55"
-  HttpRequest GET $"<planBaseUrl>/users/$<email55>/licenses" AutoRedirect=True -> VAR "l3_55"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_55"
   
   SET VAR "plan" "free"
   IF $"<l3_55>" Contains "Professional"
@@ -2049,7 +2049,7 @@ ENDTRY
 SLEEP 0.1
 
 SET VAR "email56" "eliott.perret@etu.emse.fr"
-SET VAR "password56" "}D58^9+bS2?s4N8S/dq5224B$bp@8_{:"
+SET VAR "password56" "}D58^9+bS2?s4N8S/dq5224B$bp@8_{"
 PRINT "[56/217] eliott.perret@etu.emse.fr... " White NoNewline
 
 TRY
@@ -2058,7 +2058,7 @@ TRY
     CONTENT "username=$<email56>&password=$<password56>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_56"
-  HttpRequest GET $"<planBaseUrl>/users/$<email56>/licenses" AutoRedirect=True -> VAR "l3_56"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_56"
   
   SET VAR "plan" "free"
   IF $"<l3_56>" Contains "Professional"
@@ -2086,7 +2086,7 @@ ENDTRY
 SLEEP 0.1
 
 SET VAR "email57" "elkhouteiri.a@ucd.ac.ma"
-SET VAR "password57" "8B62qY'8mNQ5R43!2^AQwJNdt4k5,LS:"
+SET VAR "password57" "8B62qY'8mNQ5R43!2^AQwJNdt4k5,LS"
 PRINT "[57/217] elkhouteiri.a@ucd.ac.ma... " White NoNewline
 
 TRY
@@ -2095,7 +2095,7 @@ TRY
     CONTENT "username=$<email57>&password=$<password57>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_57"
-  HttpRequest GET $"<planBaseUrl>/users/$<email57>/licenses" AutoRedirect=True -> VAR "l3_57"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_57"
   
   SET VAR "plan" "free"
   IF $"<l3_57>" Contains "Professional"
@@ -2132,7 +2132,7 @@ TRY
     CONTENT "username=$<email58>&password=$<password58>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_58"
-  HttpRequest GET $"<planBaseUrl>/users/$<email58>/licenses" AutoRedirect=True -> VAR "l3_58"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_58"
   
   SET VAR "plan" "free"
   IF $"<l3_58>" Contains "Professional"
@@ -2169,7 +2169,7 @@ TRY
     CONTENT "username=$<email59>&password=$<password59>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_59"
-  HttpRequest GET $"<planBaseUrl>/users/$<email59>/licenses" AutoRedirect=True -> VAR "l3_59"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_59"
   
   SET VAR "plan" "free"
   IF $"<l3_59>" Contains "Professional"
@@ -2206,7 +2206,7 @@ TRY
     CONTENT "username=$<email60>&password=$<password60>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_60"
-  HttpRequest GET $"<planBaseUrl>/users/$<email60>/licenses" AutoRedirect=True -> VAR "l3_60"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_60"
   
   SET VAR "plan" "free"
   IF $"<l3_60>" Contains "Professional"
@@ -2243,7 +2243,7 @@ TRY
     CONTENT "username=$<email61>&password=$<password61>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_61"
-  HttpRequest GET $"<planBaseUrl>/users/$<email61>/licenses" AutoRedirect=True -> VAR "l3_61"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_61"
   
   SET VAR "plan" "free"
   IF $"<l3_61>" Contains "Professional"
@@ -2280,7 +2280,7 @@ TRY
     CONTENT "username=$<email62>&password=$<password62>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_62"
-  HttpRequest GET $"<planBaseUrl>/users/$<email62>/licenses" AutoRedirect=True -> VAR "l3_62"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_62"
   
   SET VAR "plan" "free"
   IF $"<l3_62>" Contains "Professional"
@@ -2317,7 +2317,7 @@ TRY
     CONTENT "username=$<email63>&password=$<password63>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_63"
-  HttpRequest GET $"<planBaseUrl>/users/$<email63>/licenses" AutoRedirect=True -> VAR "l3_63"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_63"
   
   SET VAR "plan" "free"
   IF $"<l3_63>" Contains "Professional"
@@ -2354,7 +2354,7 @@ TRY
     CONTENT "username=$<email64>&password=$<password64>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_64"
-  HttpRequest GET $"<planBaseUrl>/users/$<email64>/licenses" AutoRedirect=True -> VAR "l3_64"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_64"
   
   SET VAR "plan" "free"
   IF $"<l3_64>" Contains "Professional"
@@ -2391,7 +2391,7 @@ TRY
     CONTENT "username=$<email65>&password=$<password65>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_65"
-  HttpRequest GET $"<planBaseUrl>/users/$<email65>/licenses" AutoRedirect=True -> VAR "l3_65"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_65"
   
   SET VAR "plan" "free"
   IF $"<l3_65>" Contains "Professional"
@@ -2428,7 +2428,7 @@ TRY
     CONTENT "username=$<email66>&password=$<password66>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_66"
-  HttpRequest GET $"<planBaseUrl>/users/$<email66>/licenses" AutoRedirect=True -> VAR "l3_66"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_66"
   
   SET VAR "plan" "free"
   IF $"<l3_66>" Contains "Professional"
@@ -2465,7 +2465,7 @@ TRY
     CONTENT "username=$<email67>&password=$<password67>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_67"
-  HttpRequest GET $"<planBaseUrl>/users/$<email67>/licenses" AutoRedirect=True -> VAR "l3_67"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_67"
   
   SET VAR "plan" "free"
   IF $"<l3_67>" Contains "Professional"
@@ -2502,7 +2502,7 @@ TRY
     CONTENT "username=$<email68>&password=$<password68>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_68"
-  HttpRequest GET $"<planBaseUrl>/users/$<email68>/licenses" AutoRedirect=True -> VAR "l3_68"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_68"
   
   SET VAR "plan" "free"
   IF $"<l3_68>" Contains "Professional"
@@ -2539,7 +2539,7 @@ TRY
     CONTENT "username=$<email69>&password=$<password69>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_69"
-  HttpRequest GET $"<planBaseUrl>/users/$<email69>/licenses" AutoRedirect=True -> VAR "l3_69"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_69"
   
   SET VAR "plan" "free"
   IF $"<l3_69>" Contains "Professional"
@@ -2576,7 +2576,7 @@ TRY
     CONTENT "username=$<email70>&password=$<password70>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_70"
-  HttpRequest GET $"<planBaseUrl>/users/$<email70>/licenses" AutoRedirect=True -> VAR "l3_70"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_70"
   
   SET VAR "plan" "free"
   IF $"<l3_70>" Contains "Professional"
@@ -2613,7 +2613,7 @@ TRY
     CONTENT "username=$<email71>&password=$<password71>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_71"
-  HttpRequest GET $"<planBaseUrl>/users/$<email71>/licenses" AutoRedirect=True -> VAR "l3_71"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_71"
   
   SET VAR "plan" "free"
   IF $"<l3_71>" Contains "Professional"
@@ -2650,7 +2650,7 @@ TRY
     CONTENT "username=$<email72>&password=$<password72>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_72"
-  HttpRequest GET $"<planBaseUrl>/users/$<email72>/licenses" AutoRedirect=True -> VAR "l3_72"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_72"
   
   SET VAR "plan" "free"
   IF $"<l3_72>" Contains "Professional"
@@ -2687,7 +2687,7 @@ TRY
     CONTENT "username=$<email73>&password=$<password73>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_73"
-  HttpRequest GET $"<planBaseUrl>/users/$<email73>/licenses" AutoRedirect=True -> VAR "l3_73"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_73"
   
   SET VAR "plan" "free"
   IF $"<l3_73>" Contains "Professional"
@@ -2724,7 +2724,7 @@ TRY
     CONTENT "username=$<email74>&password=$<password74>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_74"
-  HttpRequest GET $"<planBaseUrl>/users/$<email74>/licenses" AutoRedirect=True -> VAR "l3_74"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_74"
   
   SET VAR "plan" "free"
   IF $"<l3_74>" Contains "Professional"
@@ -2761,7 +2761,7 @@ TRY
     CONTENT "username=$<email75>&password=$<password75>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_75"
-  HttpRequest GET $"<planBaseUrl>/users/$<email75>/licenses" AutoRedirect=True -> VAR "l3_75"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_75"
   
   SET VAR "plan" "free"
   IF $"<l3_75>" Contains "Professional"
@@ -2798,7 +2798,7 @@ TRY
     CONTENT "username=$<email76>&password=$<password76>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_76"
-  HttpRequest GET $"<planBaseUrl>/users/$<email76>/licenses" AutoRedirect=True -> VAR "l3_76"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_76"
   
   SET VAR "plan" "free"
   IF $"<l3_76>" Contains "Professional"
@@ -2835,7 +2835,7 @@ TRY
     CONTENT "username=$<email77>&password=$<password77>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_77"
-  HttpRequest GET $"<planBaseUrl>/users/$<email77>/licenses" AutoRedirect=True -> VAR "l3_77"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_77"
   
   SET VAR "plan" "free"
   IF $"<l3_77>" Contains "Professional"
@@ -2872,7 +2872,7 @@ TRY
     CONTENT "username=$<email78>&password=$<password78>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_78"
-  HttpRequest GET $"<planBaseUrl>/users/$<email78>/licenses" AutoRedirect=True -> VAR "l3_78"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_78"
   
   SET VAR "plan" "free"
   IF $"<l3_78>" Contains "Professional"
@@ -2909,7 +2909,7 @@ TRY
     CONTENT "username=$<email79>&password=$<password79>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_79"
-  HttpRequest GET $"<planBaseUrl>/users/$<email79>/licenses" AutoRedirect=True -> VAR "l3_79"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_79"
   
   SET VAR "plan" "free"
   IF $"<l3_79>" Contains "Professional"
@@ -2946,7 +2946,7 @@ TRY
     CONTENT "username=$<email80>&password=$<password80>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_80"
-  HttpRequest GET $"<planBaseUrl>/users/$<email80>/licenses" AutoRedirect=True -> VAR "l3_80"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_80"
   
   SET VAR "plan" "free"
   IF $"<l3_80>" Contains "Professional"
@@ -2983,7 +2983,7 @@ TRY
     CONTENT "username=$<email81>&password=$<password81>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_81"
-  HttpRequest GET $"<planBaseUrl>/users/$<email81>/licenses" AutoRedirect=True -> VAR "l3_81"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_81"
   
   SET VAR "plan" "free"
   IF $"<l3_81>" Contains "Professional"
@@ -3020,7 +3020,7 @@ TRY
     CONTENT "username=$<email82>&password=$<password82>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_82"
-  HttpRequest GET $"<planBaseUrl>/users/$<email82>/licenses" AutoRedirect=True -> VAR "l3_82"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_82"
   
   SET VAR "plan" "free"
   IF $"<l3_82>" Contains "Professional"
@@ -3057,7 +3057,7 @@ TRY
     CONTENT "username=$<email83>&password=$<password83>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_83"
-  HttpRequest GET $"<planBaseUrl>/users/$<email83>/licenses" AutoRedirect=True -> VAR "l3_83"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_83"
   
   SET VAR "plan" "free"
   IF $"<l3_83>" Contains "Professional"
@@ -3094,7 +3094,7 @@ TRY
     CONTENT "username=$<email84>&password=$<password84>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_84"
-  HttpRequest GET $"<planBaseUrl>/users/$<email84>/licenses" AutoRedirect=True -> VAR "l3_84"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_84"
   
   SET VAR "plan" "free"
   IF $"<l3_84>" Contains "Professional"
@@ -3131,7 +3131,7 @@ TRY
     CONTENT "username=$<email85>&password=$<password85>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_85"
-  HttpRequest GET $"<planBaseUrl>/users/$<email85>/licenses" AutoRedirect=True -> VAR "l3_85"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_85"
   
   SET VAR "plan" "free"
   IF $"<l3_85>" Contains "Professional"
@@ -3168,7 +3168,7 @@ TRY
     CONTENT "username=$<email86>&password=$<password86>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_86"
-  HttpRequest GET $"<planBaseUrl>/users/$<email86>/licenses" AutoRedirect=True -> VAR "l3_86"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_86"
   
   SET VAR "plan" "free"
   IF $"<l3_86>" Contains "Professional"
@@ -3205,7 +3205,7 @@ TRY
     CONTENT "username=$<email87>&password=$<password87>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_87"
-  HttpRequest GET $"<planBaseUrl>/users/$<email87>/licenses" AutoRedirect=True -> VAR "l3_87"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_87"
   
   SET VAR "plan" "free"
   IF $"<l3_87>" Contains "Professional"
@@ -3242,7 +3242,7 @@ TRY
     CONTENT "username=$<email88>&password=$<password88>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_88"
-  HttpRequest GET $"<planBaseUrl>/users/$<email88>/licenses" AutoRedirect=True -> VAR "l3_88"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_88"
   
   SET VAR "plan" "free"
   IF $"<l3_88>" Contains "Professional"
@@ -3279,7 +3279,7 @@ TRY
     CONTENT "username=$<email89>&password=$<password89>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_89"
-  HttpRequest GET $"<planBaseUrl>/users/$<email89>/licenses" AutoRedirect=True -> VAR "l3_89"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_89"
   
   SET VAR "plan" "free"
   IF $"<l3_89>" Contains "Professional"
@@ -3316,7 +3316,7 @@ TRY
     CONTENT "username=$<email90>&password=$<password90>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_90"
-  HttpRequest GET $"<planBaseUrl>/users/$<email90>/licenses" AutoRedirect=True -> VAR "l3_90"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_90"
   
   SET VAR "plan" "free"
   IF $"<l3_90>" Contains "Professional"
@@ -3353,7 +3353,7 @@ TRY
     CONTENT "username=$<email91>&password=$<password91>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_91"
-  HttpRequest GET $"<planBaseUrl>/users/$<email91>/licenses" AutoRedirect=True -> VAR "l3_91"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_91"
   
   SET VAR "plan" "free"
   IF $"<l3_91>" Contains "Professional"
@@ -3390,7 +3390,7 @@ TRY
     CONTENT "username=$<email92>&password=$<password92>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_92"
-  HttpRequest GET $"<planBaseUrl>/users/$<email92>/licenses" AutoRedirect=True -> VAR "l3_92"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_92"
   
   SET VAR "plan" "free"
   IF $"<l3_92>" Contains "Professional"
@@ -3427,7 +3427,7 @@ TRY
     CONTENT "username=$<email93>&password=$<password93>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_93"
-  HttpRequest GET $"<planBaseUrl>/users/$<email93>/licenses" AutoRedirect=True -> VAR "l3_93"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_93"
   
   SET VAR "plan" "free"
   IF $"<l3_93>" Contains "Professional"
@@ -3464,7 +3464,7 @@ TRY
     CONTENT "username=$<email94>&password=$<password94>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_94"
-  HttpRequest GET $"<planBaseUrl>/users/$<email94>/licenses" AutoRedirect=True -> VAR "l3_94"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_94"
   
   SET VAR "plan" "free"
   IF $"<l3_94>" Contains "Professional"
@@ -3501,7 +3501,7 @@ TRY
     CONTENT "username=$<email95>&password=$<password95>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_95"
-  HttpRequest GET $"<planBaseUrl>/users/$<email95>/licenses" AutoRedirect=True -> VAR "l3_95"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_95"
   
   SET VAR "plan" "free"
   IF $"<l3_95>" Contains "Professional"
@@ -3538,7 +3538,7 @@ TRY
     CONTENT "username=$<email96>&password=$<password96>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_96"
-  HttpRequest GET $"<planBaseUrl>/users/$<email96>/licenses" AutoRedirect=True -> VAR "l3_96"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_96"
   
   SET VAR "plan" "free"
   IF $"<l3_96>" Contains "Professional"
@@ -3575,7 +3575,7 @@ TRY
     CONTENT "username=$<email97>&password=$<password97>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_97"
-  HttpRequest GET $"<planBaseUrl>/users/$<email97>/licenses" AutoRedirect=True -> VAR "l3_97"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_97"
   
   SET VAR "plan" "free"
   IF $"<l3_97>" Contains "Professional"
@@ -3612,7 +3612,7 @@ TRY
     CONTENT "username=$<email98>&password=$<password98>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_98"
-  HttpRequest GET $"<planBaseUrl>/users/$<email98>/licenses" AutoRedirect=True -> VAR "l3_98"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_98"
   
   SET VAR "plan" "free"
   IF $"<l3_98>" Contains "Professional"
@@ -3649,7 +3649,7 @@ TRY
     CONTENT "username=$<email99>&password=$<password99>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_99"
-  HttpRequest GET $"<planBaseUrl>/users/$<email99>/licenses" AutoRedirect=True -> VAR "l3_99"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_99"
   
   SET VAR "plan" "free"
   IF $"<l3_99>" Contains "Professional"
@@ -3686,7 +3686,7 @@ TRY
     CONTENT "username=$<email100>&password=$<password100>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_100"
-  HttpRequest GET $"<planBaseUrl>/users/$<email100>/licenses" AutoRedirect=True -> VAR "l3_100"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_100"
   
   SET VAR "plan" "free"
   IF $"<l3_100>" Contains "Professional"
@@ -3723,7 +3723,7 @@ TRY
     CONTENT "username=$<email101>&password=$<password101>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_101"
-  HttpRequest GET $"<planBaseUrl>/users/$<email101>/licenses" AutoRedirect=True -> VAR "l3_101"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_101"
   
   SET VAR "plan" "free"
   IF $"<l3_101>" Contains "Professional"
@@ -3760,7 +3760,7 @@ TRY
     CONTENT "username=$<email102>&password=$<password102>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_102"
-  HttpRequest GET $"<planBaseUrl>/users/$<email102>/licenses" AutoRedirect=True -> VAR "l3_102"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_102"
   
   SET VAR "plan" "free"
   IF $"<l3_102>" Contains "Professional"
@@ -3797,7 +3797,7 @@ TRY
     CONTENT "username=$<email103>&password=$<password103>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_103"
-  HttpRequest GET $"<planBaseUrl>/users/$<email103>/licenses" AutoRedirect=True -> VAR "l3_103"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_103"
   
   SET VAR "plan" "free"
   IF $"<l3_103>" Contains "Professional"
@@ -3834,7 +3834,7 @@ TRY
     CONTENT "username=$<email104>&password=$<password104>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_104"
-  HttpRequest GET $"<planBaseUrl>/users/$<email104>/licenses" AutoRedirect=True -> VAR "l3_104"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_104"
   
   SET VAR "plan" "free"
   IF $"<l3_104>" Contains "Professional"
@@ -3871,7 +3871,7 @@ TRY
     CONTENT "username=$<email105>&password=$<password105>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_105"
-  HttpRequest GET $"<planBaseUrl>/users/$<email105>/licenses" AutoRedirect=True -> VAR "l3_105"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_105"
   
   SET VAR "plan" "free"
   IF $"<l3_105>" Contains "Professional"
@@ -3908,7 +3908,7 @@ TRY
     CONTENT "username=$<email106>&password=$<password106>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_106"
-  HttpRequest GET $"<planBaseUrl>/users/$<email106>/licenses" AutoRedirect=True -> VAR "l3_106"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_106"
   
   SET VAR "plan" "free"
   IF $"<l3_106>" Contains "Professional"
@@ -3945,7 +3945,7 @@ TRY
     CONTENT "username=$<email107>&password=$<password107>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_107"
-  HttpRequest GET $"<planBaseUrl>/users/$<email107>/licenses" AutoRedirect=True -> VAR "l3_107"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_107"
   
   SET VAR "plan" "free"
   IF $"<l3_107>" Contains "Professional"
@@ -3982,7 +3982,7 @@ TRY
     CONTENT "username=$<email108>&password=$<password108>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_108"
-  HttpRequest GET $"<planBaseUrl>/users/$<email108>/licenses" AutoRedirect=True -> VAR "l3_108"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_108"
   
   SET VAR "plan" "free"
   IF $"<l3_108>" Contains "Professional"
@@ -4019,7 +4019,7 @@ TRY
     CONTENT "username=$<email109>&password=$<password109>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_109"
-  HttpRequest GET $"<planBaseUrl>/users/$<email109>/licenses" AutoRedirect=True -> VAR "l3_109"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_109"
   
   SET VAR "plan" "free"
   IF $"<l3_109>" Contains "Professional"
@@ -4056,7 +4056,7 @@ TRY
     CONTENT "username=$<email110>&password=$<password110>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_110"
-  HttpRequest GET $"<planBaseUrl>/users/$<email110>/licenses" AutoRedirect=True -> VAR "l3_110"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_110"
   
   SET VAR "plan" "free"
   IF $"<l3_110>" Contains "Professional"
@@ -4093,7 +4093,7 @@ TRY
     CONTENT "username=$<email111>&password=$<password111>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_111"
-  HttpRequest GET $"<planBaseUrl>/users/$<email111>/licenses" AutoRedirect=True -> VAR "l3_111"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_111"
   
   SET VAR "plan" "free"
   IF $"<l3_111>" Contains "Professional"
@@ -4130,7 +4130,7 @@ TRY
     CONTENT "username=$<email112>&password=$<password112>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_112"
-  HttpRequest GET $"<planBaseUrl>/users/$<email112>/licenses" AutoRedirect=True -> VAR "l3_112"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_112"
   
   SET VAR "plan" "free"
   IF $"<l3_112>" Contains "Professional"
@@ -4167,7 +4167,7 @@ TRY
     CONTENT "username=$<email113>&password=$<password113>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_113"
-  HttpRequest GET $"<planBaseUrl>/users/$<email113>/licenses" AutoRedirect=True -> VAR "l3_113"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_113"
   
   SET VAR "plan" "free"
   IF $"<l3_113>" Contains "Professional"
@@ -4204,7 +4204,7 @@ TRY
     CONTENT "username=$<email114>&password=$<password114>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_114"
-  HttpRequest GET $"<planBaseUrl>/users/$<email114>/licenses" AutoRedirect=True -> VAR "l3_114"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_114"
   
   SET VAR "plan" "free"
   IF $"<l3_114>" Contains "Professional"
@@ -4241,7 +4241,7 @@ TRY
     CONTENT "username=$<email115>&password=$<password115>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_115"
-  HttpRequest GET $"<planBaseUrl>/users/$<email115>/licenses" AutoRedirect=True -> VAR "l3_115"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_115"
   
   SET VAR "plan" "free"
   IF $"<l3_115>" Contains "Professional"
@@ -4278,7 +4278,7 @@ TRY
     CONTENT "username=$<email116>&password=$<password116>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_116"
-  HttpRequest GET $"<planBaseUrl>/users/$<email116>/licenses" AutoRedirect=True -> VAR "l3_116"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_116"
   
   SET VAR "plan" "free"
   IF $"<l3_116>" Contains "Professional"
@@ -4315,7 +4315,7 @@ TRY
     CONTENT "username=$<email117>&password=$<password117>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_117"
-  HttpRequest GET $"<planBaseUrl>/users/$<email117>/licenses" AutoRedirect=True -> VAR "l3_117"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_117"
   
   SET VAR "plan" "free"
   IF $"<l3_117>" Contains "Professional"
@@ -4352,7 +4352,7 @@ TRY
     CONTENT "username=$<email118>&password=$<password118>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_118"
-  HttpRequest GET $"<planBaseUrl>/users/$<email118>/licenses" AutoRedirect=True -> VAR "l3_118"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_118"
   
   SET VAR "plan" "free"
   IF $"<l3_118>" Contains "Professional"
@@ -4389,7 +4389,7 @@ TRY
     CONTENT "username=$<email119>&password=$<password119>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_119"
-  HttpRequest GET $"<planBaseUrl>/users/$<email119>/licenses" AutoRedirect=True -> VAR "l3_119"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_119"
   
   SET VAR "plan" "free"
   IF $"<l3_119>" Contains "Professional"
@@ -4426,7 +4426,7 @@ TRY
     CONTENT "username=$<email120>&password=$<password120>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_120"
-  HttpRequest GET $"<planBaseUrl>/users/$<email120>/licenses" AutoRedirect=True -> VAR "l3_120"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_120"
   
   SET VAR "plan" "free"
   IF $"<l3_120>" Contains "Professional"
@@ -4463,7 +4463,7 @@ TRY
     CONTENT "username=$<email121>&password=$<password121>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_121"
-  HttpRequest GET $"<planBaseUrl>/users/$<email121>/licenses" AutoRedirect=True -> VAR "l3_121"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_121"
   
   SET VAR "plan" "free"
   IF $"<l3_121>" Contains "Professional"
@@ -4500,7 +4500,7 @@ TRY
     CONTENT "username=$<email122>&password=$<password122>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_122"
-  HttpRequest GET $"<planBaseUrl>/users/$<email122>/licenses" AutoRedirect=True -> VAR "l3_122"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_122"
   
   SET VAR "plan" "free"
   IF $"<l3_122>" Contains "Professional"
@@ -4537,7 +4537,7 @@ TRY
     CONTENT "username=$<email123>&password=$<password123>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_123"
-  HttpRequest GET $"<planBaseUrl>/users/$<email123>/licenses" AutoRedirect=True -> VAR "l3_123"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_123"
   
   SET VAR "plan" "free"
   IF $"<l3_123>" Contains "Professional"
@@ -4574,7 +4574,7 @@ TRY
     CONTENT "username=$<email124>&password=$<password124>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_124"
-  HttpRequest GET $"<planBaseUrl>/users/$<email124>/licenses" AutoRedirect=True -> VAR "l3_124"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_124"
   
   SET VAR "plan" "free"
   IF $"<l3_124>" Contains "Professional"
@@ -4611,7 +4611,7 @@ TRY
     CONTENT "username=$<email125>&password=$<password125>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_125"
-  HttpRequest GET $"<planBaseUrl>/users/$<email125>/licenses" AutoRedirect=True -> VAR "l3_125"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_125"
   
   SET VAR "plan" "free"
   IF $"<l3_125>" Contains "Professional"
@@ -4648,7 +4648,7 @@ TRY
     CONTENT "username=$<email126>&password=$<password126>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_126"
-  HttpRequest GET $"<planBaseUrl>/users/$<email126>/licenses" AutoRedirect=True -> VAR "l3_126"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_126"
   
   SET VAR "plan" "free"
   IF $"<l3_126>" Contains "Professional"
@@ -4685,7 +4685,7 @@ TRY
     CONTENT "username=$<email127>&password=$<password127>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_127"
-  HttpRequest GET $"<planBaseUrl>/users/$<email127>/licenses" AutoRedirect=True -> VAR "l3_127"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_127"
   
   SET VAR "plan" "free"
   IF $"<l3_127>" Contains "Professional"
@@ -4722,7 +4722,7 @@ TRY
     CONTENT "username=$<email128>&password=$<password128>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_128"
-  HttpRequest GET $"<planBaseUrl>/users/$<email128>/licenses" AutoRedirect=True -> VAR "l3_128"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_128"
   
   SET VAR "plan" "free"
   IF $"<l3_128>" Contains "Professional"
@@ -4759,7 +4759,7 @@ TRY
     CONTENT "username=$<email129>&password=$<password129>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_129"
-  HttpRequest GET $"<planBaseUrl>/users/$<email129>/licenses" AutoRedirect=True -> VAR "l3_129"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_129"
   
   SET VAR "plan" "free"
   IF $"<l3_129>" Contains "Professional"
@@ -4796,7 +4796,7 @@ TRY
     CONTENT "username=$<email130>&password=$<password130>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_130"
-  HttpRequest GET $"<planBaseUrl>/users/$<email130>/licenses" AutoRedirect=True -> VAR "l3_130"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_130"
   
   SET VAR "plan" "free"
   IF $"<l3_130>" Contains "Professional"
@@ -4833,7 +4833,7 @@ TRY
     CONTENT "username=$<email131>&password=$<password131>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_131"
-  HttpRequest GET $"<planBaseUrl>/users/$<email131>/licenses" AutoRedirect=True -> VAR "l3_131"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_131"
   
   SET VAR "plan" "free"
   IF $"<l3_131>" Contains "Professional"
@@ -4870,7 +4870,7 @@ TRY
     CONTENT "username=$<email132>&password=$<password132>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_132"
-  HttpRequest GET $"<planBaseUrl>/users/$<email132>/licenses" AutoRedirect=True -> VAR "l3_132"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_132"
   
   SET VAR "plan" "free"
   IF $"<l3_132>" Contains "Professional"
@@ -4907,7 +4907,7 @@ TRY
     CONTENT "username=$<email133>&password=$<password133>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_133"
-  HttpRequest GET $"<planBaseUrl>/users/$<email133>/licenses" AutoRedirect=True -> VAR "l3_133"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_133"
   
   SET VAR "plan" "free"
   IF $"<l3_133>" Contains "Professional"
@@ -4944,7 +4944,7 @@ TRY
     CONTENT "username=$<email134>&password=$<password134>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_134"
-  HttpRequest GET $"<planBaseUrl>/users/$<email134>/licenses" AutoRedirect=True -> VAR "l3_134"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_134"
   
   SET VAR "plan" "free"
   IF $"<l3_134>" Contains "Professional"
@@ -4981,7 +4981,7 @@ TRY
     CONTENT "username=$<email135>&password=$<password135>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_135"
-  HttpRequest GET $"<planBaseUrl>/users/$<email135>/licenses" AutoRedirect=True -> VAR "l3_135"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_135"
   
   SET VAR "plan" "free"
   IF $"<l3_135>" Contains "Professional"
@@ -5018,7 +5018,7 @@ TRY
     CONTENT "username=$<email136>&password=$<password136>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_136"
-  HttpRequest GET $"<planBaseUrl>/users/$<email136>/licenses" AutoRedirect=True -> VAR "l3_136"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_136"
   
   SET VAR "plan" "free"
   IF $"<l3_136>" Contains "Professional"
@@ -5055,7 +5055,7 @@ TRY
     CONTENT "username=$<email137>&password=$<password137>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_137"
-  HttpRequest GET $"<planBaseUrl>/users/$<email137>/licenses" AutoRedirect=True -> VAR "l3_137"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_137"
   
   SET VAR "plan" "free"
   IF $"<l3_137>" Contains "Professional"
@@ -5092,7 +5092,7 @@ TRY
     CONTENT "username=$<email138>&password=$<password138>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_138"
-  HttpRequest GET $"<planBaseUrl>/users/$<email138>/licenses" AutoRedirect=True -> VAR "l3_138"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_138"
   
   SET VAR "plan" "free"
   IF $"<l3_138>" Contains "Professional"
@@ -5129,7 +5129,7 @@ TRY
     CONTENT "username=$<email139>&password=$<password139>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_139"
-  HttpRequest GET $"<planBaseUrl>/users/$<email139>/licenses" AutoRedirect=True -> VAR "l3_139"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_139"
   
   SET VAR "plan" "free"
   IF $"<l3_139>" Contains "Professional"
@@ -5166,7 +5166,7 @@ TRY
     CONTENT "username=$<email140>&password=$<password140>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_140"
-  HttpRequest GET $"<planBaseUrl>/users/$<email140>/licenses" AutoRedirect=True -> VAR "l3_140"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_140"
   
   SET VAR "plan" "free"
   IF $"<l3_140>" Contains "Professional"
@@ -5203,7 +5203,7 @@ TRY
     CONTENT "username=$<email141>&password=$<password141>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_141"
-  HttpRequest GET $"<planBaseUrl>/users/$<email141>/licenses" AutoRedirect=True -> VAR "l3_141"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_141"
   
   SET VAR "plan" "free"
   IF $"<l3_141>" Contains "Professional"
@@ -5240,7 +5240,7 @@ TRY
     CONTENT "username=$<email142>&password=$<password142>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_142"
-  HttpRequest GET $"<planBaseUrl>/users/$<email142>/licenses" AutoRedirect=True -> VAR "l3_142"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_142"
   
   SET VAR "plan" "free"
   IF $"<l3_142>" Contains "Professional"
@@ -5277,7 +5277,7 @@ TRY
     CONTENT "username=$<email143>&password=$<password143>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_143"
-  HttpRequest GET $"<planBaseUrl>/users/$<email143>/licenses" AutoRedirect=True -> VAR "l3_143"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_143"
   
   SET VAR "plan" "free"
   IF $"<l3_143>" Contains "Professional"
@@ -5314,7 +5314,7 @@ TRY
     CONTENT "username=$<email144>&password=$<password144>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_144"
-  HttpRequest GET $"<planBaseUrl>/users/$<email144>/licenses" AutoRedirect=True -> VAR "l3_144"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_144"
   
   SET VAR "plan" "free"
   IF $"<l3_144>" Contains "Professional"
@@ -5351,7 +5351,7 @@ TRY
     CONTENT "username=$<email145>&password=$<password145>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_145"
-  HttpRequest GET $"<planBaseUrl>/users/$<email145>/licenses" AutoRedirect=True -> VAR "l3_145"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_145"
   
   SET VAR "plan" "free"
   IF $"<l3_145>" Contains "Professional"
@@ -5388,7 +5388,7 @@ TRY
     CONTENT "username=$<email146>&password=$<password146>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_146"
-  HttpRequest GET $"<planBaseUrl>/users/$<email146>/licenses" AutoRedirect=True -> VAR "l3_146"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_146"
   
   SET VAR "plan" "free"
   IF $"<l3_146>" Contains "Professional"
@@ -5416,7 +5416,7 @@ ENDTRY
 SLEEP 0.1
 
 SET VAR "email147" "offlinechannel02@gmail.com"
-SET VAR "password147" "4XWR$iRxiPjr77^5-\6rT7,a|DWw~X':"
+SET VAR "password147" "4XWR$iRxiPjr77^5-\6rT7,a|DWw~X'"
 PRINT "[147/217] offlinechannel02@gmail.com... " White NoNewline
 
 TRY
@@ -5425,7 +5425,7 @@ TRY
     CONTENT "username=$<email147>&password=$<password147>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_147"
-  HttpRequest GET $"<planBaseUrl>/users/$<email147>/licenses" AutoRedirect=True -> VAR "l3_147"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_147"
   
   SET VAR "plan" "free"
   IF $"<l3_147>" Contains "Professional"
@@ -5462,7 +5462,7 @@ TRY
     CONTENT "username=$<email148>&password=$<password148>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_148"
-  HttpRequest GET $"<planBaseUrl>/users/$<email148>/licenses" AutoRedirect=True -> VAR "l3_148"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_148"
   
   SET VAR "plan" "free"
   IF $"<l3_148>" Contains "Professional"
@@ -5499,7 +5499,7 @@ TRY
     CONTENT "username=$<email149>&password=$<password149>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_149"
-  HttpRequest GET $"<planBaseUrl>/users/$<email149>/licenses" AutoRedirect=True -> VAR "l3_149"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_149"
   
   SET VAR "plan" "free"
   IF $"<l3_149>" Contains "Professional"
@@ -5536,7 +5536,7 @@ TRY
     CONTENT "username=$<email150>&password=$<password150>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_150"
-  HttpRequest GET $"<planBaseUrl>/users/$<email150>/licenses" AutoRedirect=True -> VAR "l3_150"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_150"
   
   SET VAR "plan" "free"
   IF $"<l3_150>" Contains "Professional"
@@ -5573,7 +5573,7 @@ TRY
     CONTENT "username=$<email151>&password=$<password151>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_151"
-  HttpRequest GET $"<planBaseUrl>/users/$<email151>/licenses" AutoRedirect=True -> VAR "l3_151"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_151"
   
   SET VAR "plan" "free"
   IF $"<l3_151>" Contains "Professional"
@@ -5610,7 +5610,7 @@ TRY
     CONTENT "username=$<email152>&password=$<password152>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_152"
-  HttpRequest GET $"<planBaseUrl>/users/$<email152>/licenses" AutoRedirect=True -> VAR "l3_152"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_152"
   
   SET VAR "plan" "free"
   IF $"<l3_152>" Contains "Professional"
@@ -5647,7 +5647,7 @@ TRY
     CONTENT "username=$<email153>&password=$<password153>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_153"
-  HttpRequest GET $"<planBaseUrl>/users/$<email153>/licenses" AutoRedirect=True -> VAR "l3_153"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_153"
   
   SET VAR "plan" "free"
   IF $"<l3_153>" Contains "Professional"
@@ -5684,7 +5684,7 @@ TRY
     CONTENT "username=$<email154>&password=$<password154>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_154"
-  HttpRequest GET $"<planBaseUrl>/users/$<email154>/licenses" AutoRedirect=True -> VAR "l3_154"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_154"
   
   SET VAR "plan" "free"
   IF $"<l3_154>" Contains "Professional"
@@ -5721,7 +5721,7 @@ TRY
     CONTENT "username=$<email155>&password=$<password155>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_155"
-  HttpRequest GET $"<planBaseUrl>/users/$<email155>/licenses" AutoRedirect=True -> VAR "l3_155"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_155"
   
   SET VAR "plan" "free"
   IF $"<l3_155>" Contains "Professional"
@@ -5758,7 +5758,7 @@ TRY
     CONTENT "username=$<email156>&password=$<password156>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_156"
-  HttpRequest GET $"<planBaseUrl>/users/$<email156>/licenses" AutoRedirect=True -> VAR "l3_156"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_156"
   
   SET VAR "plan" "free"
   IF $"<l3_156>" Contains "Professional"
@@ -5795,7 +5795,7 @@ TRY
     CONTENT "username=$<email157>&password=$<password157>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_157"
-  HttpRequest GET $"<planBaseUrl>/users/$<email157>/licenses" AutoRedirect=True -> VAR "l3_157"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_157"
   
   SET VAR "plan" "free"
   IF $"<l3_157>" Contains "Professional"
@@ -5832,7 +5832,7 @@ TRY
     CONTENT "username=$<email158>&password=$<password158>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_158"
-  HttpRequest GET $"<planBaseUrl>/users/$<email158>/licenses" AutoRedirect=True -> VAR "l3_158"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_158"
   
   SET VAR "plan" "free"
   IF $"<l3_158>" Contains "Professional"
@@ -5869,7 +5869,7 @@ TRY
     CONTENT "username=$<email159>&password=$<password159>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_159"
-  HttpRequest GET $"<planBaseUrl>/users/$<email159>/licenses" AutoRedirect=True -> VAR "l3_159"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_159"
   
   SET VAR "plan" "free"
   IF $"<l3_159>" Contains "Professional"
@@ -5906,7 +5906,7 @@ TRY
     CONTENT "username=$<email160>&password=$<password160>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_160"
-  HttpRequest GET $"<planBaseUrl>/users/$<email160>/licenses" AutoRedirect=True -> VAR "l3_160"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_160"
   
   SET VAR "plan" "free"
   IF $"<l3_160>" Contains "Professional"
@@ -5943,7 +5943,7 @@ TRY
     CONTENT "username=$<email161>&password=$<password161>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_161"
-  HttpRequest GET $"<planBaseUrl>/users/$<email161>/licenses" AutoRedirect=True -> VAR "l3_161"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_161"
   
   SET VAR "plan" "free"
   IF $"<l3_161>" Contains "Professional"
@@ -5980,7 +5980,7 @@ TRY
     CONTENT "username=$<email162>&password=$<password162>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_162"
-  HttpRequest GET $"<planBaseUrl>/users/$<email162>/licenses" AutoRedirect=True -> VAR "l3_162"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_162"
   
   SET VAR "plan" "free"
   IF $"<l3_162>" Contains "Professional"
@@ -6017,7 +6017,7 @@ TRY
     CONTENT "username=$<email163>&password=$<password163>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_163"
-  HttpRequest GET $"<planBaseUrl>/users/$<email163>/licenses" AutoRedirect=True -> VAR "l3_163"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_163"
   
   SET VAR "plan" "free"
   IF $"<l3_163>" Contains "Professional"
@@ -6054,7 +6054,7 @@ TRY
     CONTENT "username=$<email164>&password=$<password164>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_164"
-  HttpRequest GET $"<planBaseUrl>/users/$<email164>/licenses" AutoRedirect=True -> VAR "l3_164"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_164"
   
   SET VAR "plan" "free"
   IF $"<l3_164>" Contains "Professional"
@@ -6091,7 +6091,7 @@ TRY
     CONTENT "username=$<email165>&password=$<password165>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_165"
-  HttpRequest GET $"<planBaseUrl>/users/$<email165>/licenses" AutoRedirect=True -> VAR "l3_165"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_165"
   
   SET VAR "plan" "free"
   IF $"<l3_165>" Contains "Professional"
@@ -6128,7 +6128,7 @@ TRY
     CONTENT "username=$<email166>&password=$<password166>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_166"
-  HttpRequest GET $"<planBaseUrl>/users/$<email166>/licenses" AutoRedirect=True -> VAR "l3_166"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_166"
   
   SET VAR "plan" "free"
   IF $"<l3_166>" Contains "Professional"
@@ -6165,7 +6165,7 @@ TRY
     CONTENT "username=$<email167>&password=$<password167>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_167"
-  HttpRequest GET $"<planBaseUrl>/users/$<email167>/licenses" AutoRedirect=True -> VAR "l3_167"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_167"
   
   SET VAR "plan" "free"
   IF $"<l3_167>" Contains "Professional"
@@ -6202,7 +6202,7 @@ TRY
     CONTENT "username=$<email168>&password=$<password168>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_168"
-  HttpRequest GET $"<planBaseUrl>/users/$<email168>/licenses" AutoRedirect=True -> VAR "l3_168"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_168"
   
   SET VAR "plan" "free"
   IF $"<l3_168>" Contains "Professional"
@@ -6239,7 +6239,7 @@ TRY
     CONTENT "username=$<email169>&password=$<password169>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_169"
-  HttpRequest GET $"<planBaseUrl>/users/$<email169>/licenses" AutoRedirect=True -> VAR "l3_169"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_169"
   
   SET VAR "plan" "free"
   IF $"<l3_169>" Contains "Professional"
@@ -6276,7 +6276,7 @@ TRY
     CONTENT "username=$<email170>&password=$<password170>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_170"
-  HttpRequest GET $"<planBaseUrl>/users/$<email170>/licenses" AutoRedirect=True -> VAR "l3_170"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_170"
   
   SET VAR "plan" "free"
   IF $"<l3_170>" Contains "Professional"
@@ -6313,7 +6313,7 @@ TRY
     CONTENT "username=$<email171>&password=$<password171>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_171"
-  HttpRequest GET $"<planBaseUrl>/users/$<email171>/licenses" AutoRedirect=True -> VAR "l3_171"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_171"
   
   SET VAR "plan" "free"
   IF $"<l3_171>" Contains "Professional"
@@ -6350,7 +6350,7 @@ TRY
     CONTENT "username=$<email172>&password=$<password172>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_172"
-  HttpRequest GET $"<planBaseUrl>/users/$<email172>/licenses" AutoRedirect=True -> VAR "l3_172"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_172"
   
   SET VAR "plan" "free"
   IF $"<l3_172>" Contains "Professional"
@@ -6387,7 +6387,7 @@ TRY
     CONTENT "username=$<email173>&password=$<password173>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_173"
-  HttpRequest GET $"<planBaseUrl>/users/$<email173>/licenses" AutoRedirect=True -> VAR "l3_173"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_173"
   
   SET VAR "plan" "free"
   IF $"<l3_173>" Contains "Professional"
@@ -6424,7 +6424,7 @@ TRY
     CONTENT "username=$<email174>&password=$<password174>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_174"
-  HttpRequest GET $"<planBaseUrl>/users/$<email174>/licenses" AutoRedirect=True -> VAR "l3_174"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_174"
   
   SET VAR "plan" "free"
   IF $"<l3_174>" Contains "Professional"
@@ -6461,7 +6461,7 @@ TRY
     CONTENT "username=$<email175>&password=$<password175>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_175"
-  HttpRequest GET $"<planBaseUrl>/users/$<email175>/licenses" AutoRedirect=True -> VAR "l3_175"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_175"
   
   SET VAR "plan" "free"
   IF $"<l3_175>" Contains "Professional"
@@ -6498,7 +6498,7 @@ TRY
     CONTENT "username=$<email176>&password=$<password176>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_176"
-  HttpRequest GET $"<planBaseUrl>/users/$<email176>/licenses" AutoRedirect=True -> VAR "l3_176"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_176"
   
   SET VAR "plan" "free"
   IF $"<l3_176>" Contains "Professional"
@@ -6535,7 +6535,7 @@ TRY
     CONTENT "username=$<email177>&password=$<password177>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_177"
-  HttpRequest GET $"<planBaseUrl>/users/$<email177>/licenses" AutoRedirect=True -> VAR "l3_177"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_177"
   
   SET VAR "plan" "free"
   IF $"<l3_177>" Contains "Professional"
@@ -6572,7 +6572,7 @@ TRY
     CONTENT "username=$<email178>&password=$<password178>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_178"
-  HttpRequest GET $"<planBaseUrl>/users/$<email178>/licenses" AutoRedirect=True -> VAR "l3_178"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_178"
   
   SET VAR "plan" "free"
   IF $"<l3_178>" Contains "Professional"
@@ -6609,7 +6609,7 @@ TRY
     CONTENT "username=$<email179>&password=$<password179>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_179"
-  HttpRequest GET $"<planBaseUrl>/users/$<email179>/licenses" AutoRedirect=True -> VAR "l3_179"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_179"
   
   SET VAR "plan" "free"
   IF $"<l3_179>" Contains "Professional"
@@ -6646,7 +6646,7 @@ TRY
     CONTENT "username=$<email180>&password=$<password180>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_180"
-  HttpRequest GET $"<planBaseUrl>/users/$<email180>/licenses" AutoRedirect=True -> VAR "l3_180"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_180"
   
   SET VAR "plan" "free"
   IF $"<l3_180>" Contains "Professional"
@@ -6683,7 +6683,7 @@ TRY
     CONTENT "username=$<email181>&password=$<password181>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_181"
-  HttpRequest GET $"<planBaseUrl>/users/$<email181>/licenses" AutoRedirect=True -> VAR "l3_181"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_181"
   
   SET VAR "plan" "free"
   IF $"<l3_181>" Contains "Professional"
@@ -6720,7 +6720,7 @@ TRY
     CONTENT "username=$<email182>&password=$<password182>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_182"
-  HttpRequest GET $"<planBaseUrl>/users/$<email182>/licenses" AutoRedirect=True -> VAR "l3_182"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_182"
   
   SET VAR "plan" "free"
   IF $"<l3_182>" Contains "Professional"
@@ -6757,7 +6757,7 @@ TRY
     CONTENT "username=$<email183>&password=$<password183>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_183"
-  HttpRequest GET $"<planBaseUrl>/users/$<email183>/licenses" AutoRedirect=True -> VAR "l3_183"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_183"
   
   SET VAR "plan" "free"
   IF $"<l3_183>" Contains "Professional"
@@ -6794,7 +6794,7 @@ TRY
     CONTENT "username=$<email184>&password=$<password184>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_184"
-  HttpRequest GET $"<planBaseUrl>/users/$<email184>/licenses" AutoRedirect=True -> VAR "l3_184"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_184"
   
   SET VAR "plan" "free"
   IF $"<l3_184>" Contains "Professional"
@@ -6831,7 +6831,7 @@ TRY
     CONTENT "username=$<email185>&password=$<password185>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_185"
-  HttpRequest GET $"<planBaseUrl>/users/$<email185>/licenses" AutoRedirect=True -> VAR "l3_185"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_185"
   
   SET VAR "plan" "free"
   IF $"<l3_185>" Contains "Professional"
@@ -6868,7 +6868,7 @@ TRY
     CONTENT "username=$<email186>&password=$<password186>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_186"
-  HttpRequest GET $"<planBaseUrl>/users/$<email186>/licenses" AutoRedirect=True -> VAR "l3_186"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_186"
   
   SET VAR "plan" "free"
   IF $"<l3_186>" Contains "Professional"
@@ -6905,7 +6905,7 @@ TRY
     CONTENT "username=$<email187>&password=$<password187>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_187"
-  HttpRequest GET $"<planBaseUrl>/users/$<email187>/licenses" AutoRedirect=True -> VAR "l3_187"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_187"
   
   SET VAR "plan" "free"
   IF $"<l3_187>" Contains "Professional"
@@ -6942,7 +6942,7 @@ TRY
     CONTENT "username=$<email188>&password=$<password188>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_188"
-  HttpRequest GET $"<planBaseUrl>/users/$<email188>/licenses" AutoRedirect=True -> VAR "l3_188"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_188"
   
   SET VAR "plan" "free"
   IF $"<l3_188>" Contains "Professional"
@@ -6979,7 +6979,7 @@ TRY
     CONTENT "username=$<email189>&password=$<password189>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_189"
-  HttpRequest GET $"<planBaseUrl>/users/$<email189>/licenses" AutoRedirect=True -> VAR "l3_189"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_189"
   
   SET VAR "plan" "free"
   IF $"<l3_189>" Contains "Professional"
@@ -7016,7 +7016,7 @@ TRY
     CONTENT "username=$<email190>&password=$<password190>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_190"
-  HttpRequest GET $"<planBaseUrl>/users/$<email190>/licenses" AutoRedirect=True -> VAR "l3_190"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_190"
   
   SET VAR "plan" "free"
   IF $"<l3_190>" Contains "Professional"
@@ -7053,7 +7053,7 @@ TRY
     CONTENT "username=$<email191>&password=$<password191>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_191"
-  HttpRequest GET $"<planBaseUrl>/users/$<email191>/licenses" AutoRedirect=True -> VAR "l3_191"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_191"
   
   SET VAR "plan" "free"
   IF $"<l3_191>" Contains "Professional"
@@ -7090,7 +7090,7 @@ TRY
     CONTENT "username=$<email192>&password=$<password192>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_192"
-  HttpRequest GET $"<planBaseUrl>/users/$<email192>/licenses" AutoRedirect=True -> VAR "l3_192"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_192"
   
   SET VAR "plan" "free"
   IF $"<l3_192>" Contains "Professional"
@@ -7127,7 +7127,7 @@ TRY
     CONTENT "username=$<email193>&password=$<password193>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_193"
-  HttpRequest GET $"<planBaseUrl>/users/$<email193>/licenses" AutoRedirect=True -> VAR "l3_193"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_193"
   
   SET VAR "plan" "free"
   IF $"<l3_193>" Contains "Professional"
@@ -7164,7 +7164,7 @@ TRY
     CONTENT "username=$<email194>&password=$<password194>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_194"
-  HttpRequest GET $"<planBaseUrl>/users/$<email194>/licenses" AutoRedirect=True -> VAR "l3_194"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_194"
   
   SET VAR "plan" "free"
   IF $"<l3_194>" Contains "Professional"
@@ -7201,7 +7201,7 @@ TRY
     CONTENT "username=$<email195>&password=$<password195>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_195"
-  HttpRequest GET $"<planBaseUrl>/users/$<email195>/licenses" AutoRedirect=True -> VAR "l3_195"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_195"
   
   SET VAR "plan" "free"
   IF $"<l3_195>" Contains "Professional"
@@ -7238,7 +7238,7 @@ TRY
     CONTENT "username=$<email196>&password=$<password196>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_196"
-  HttpRequest GET $"<planBaseUrl>/users/$<email196>/licenses" AutoRedirect=True -> VAR "l3_196"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_196"
   
   SET VAR "plan" "free"
   IF $"<l3_196>" Contains "Professional"
@@ -7275,7 +7275,7 @@ TRY
     CONTENT "username=$<email197>&password=$<password197>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_197"
-  HttpRequest GET $"<planBaseUrl>/users/$<email197>/licenses" AutoRedirect=True -> VAR "l3_197"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_197"
   
   SET VAR "plan" "free"
   IF $"<l3_197>" Contains "Professional"
@@ -7312,7 +7312,7 @@ TRY
     CONTENT "username=$<email198>&password=$<password198>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_198"
-  HttpRequest GET $"<planBaseUrl>/users/$<email198>/licenses" AutoRedirect=True -> VAR "l3_198"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_198"
   
   SET VAR "plan" "free"
   IF $"<l3_198>" Contains "Professional"
@@ -7349,7 +7349,7 @@ TRY
     CONTENT "username=$<email199>&password=$<password199>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_199"
-  HttpRequest GET $"<planBaseUrl>/users/$<email199>/licenses" AutoRedirect=True -> VAR "l3_199"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_199"
   
   SET VAR "plan" "free"
   IF $"<l3_199>" Contains "Professional"
@@ -7386,7 +7386,7 @@ TRY
     CONTENT "username=$<email200>&password=$<password200>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_200"
-  HttpRequest GET $"<planBaseUrl>/users/$<email200>/licenses" AutoRedirect=True -> VAR "l3_200"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_200"
   
   SET VAR "plan" "free"
   IF $"<l3_200>" Contains "Professional"
@@ -7423,7 +7423,7 @@ TRY
     CONTENT "username=$<email201>&password=$<password201>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_201"
-  HttpRequest GET $"<planBaseUrl>/users/$<email201>/licenses" AutoRedirect=True -> VAR "l3_201"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_201"
   
   SET VAR "plan" "free"
   IF $"<l3_201>" Contains "Professional"
@@ -7460,7 +7460,7 @@ TRY
     CONTENT "username=$<email202>&password=$<password202>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_202"
-  HttpRequest GET $"<planBaseUrl>/users/$<email202>/licenses" AutoRedirect=True -> VAR "l3_202"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_202"
   
   SET VAR "plan" "free"
   IF $"<l3_202>" Contains "Professional"
@@ -7497,7 +7497,7 @@ TRY
     CONTENT "username=$<email203>&password=$<password203>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_203"
-  HttpRequest GET $"<planBaseUrl>/users/$<email203>/licenses" AutoRedirect=True -> VAR "l3_203"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_203"
   
   SET VAR "plan" "free"
   IF $"<l3_203>" Contains "Professional"
@@ -7534,7 +7534,7 @@ TRY
     CONTENT "username=$<email204>&password=$<password204>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_204"
-  HttpRequest GET $"<planBaseUrl>/users/$<email204>/licenses" AutoRedirect=True -> VAR "l3_204"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_204"
   
   SET VAR "plan" "free"
   IF $"<l3_204>" Contains "Professional"
@@ -7571,7 +7571,7 @@ TRY
     CONTENT "username=$<email205>&password=$<password205>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_205"
-  HttpRequest GET $"<planBaseUrl>/users/$<email205>/licenses" AutoRedirect=True -> VAR "l3_205"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_205"
   
   SET VAR "plan" "free"
   IF $"<l3_205>" Contains "Professional"
@@ -7608,7 +7608,7 @@ TRY
     CONTENT "username=$<email206>&password=$<password206>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_206"
-  HttpRequest GET $"<planBaseUrl>/users/$<email206>/licenses" AutoRedirect=True -> VAR "l3_206"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_206"
   
   SET VAR "plan" "free"
   IF $"<l3_206>" Contains "Professional"
@@ -7645,7 +7645,7 @@ TRY
     CONTENT "username=$<email207>&password=$<password207>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_207"
-  HttpRequest GET $"<planBaseUrl>/users/$<email207>/licenses" AutoRedirect=True -> VAR "l3_207"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_207"
   
   SET VAR "plan" "free"
   IF $"<l3_207>" Contains "Professional"
@@ -7682,7 +7682,7 @@ TRY
     CONTENT "username=$<email208>&password=$<password208>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_208"
-  HttpRequest GET $"<planBaseUrl>/users/$<email208>/licenses" AutoRedirect=True -> VAR "l3_208"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_208"
   
   SET VAR "plan" "free"
   IF $"<l3_208>" Contains "Professional"
@@ -7719,7 +7719,7 @@ TRY
     CONTENT "username=$<email209>&password=$<password209>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_209"
-  HttpRequest GET $"<planBaseUrl>/users/$<email209>/licenses" AutoRedirect=True -> VAR "l3_209"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_209"
   
   SET VAR "plan" "free"
   IF $"<l3_209>" Contains "Professional"
@@ -7756,7 +7756,7 @@ TRY
     CONTENT "username=$<email210>&password=$<password210>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_210"
-  HttpRequest GET $"<planBaseUrl>/users/$<email210>/licenses" AutoRedirect=True -> VAR "l3_210"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_210"
   
   SET VAR "plan" "free"
   IF $"<l3_210>" Contains "Professional"
@@ -7793,7 +7793,7 @@ TRY
     CONTENT "username=$<email211>&password=$<password211>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_211"
-  HttpRequest GET $"<planBaseUrl>/users/$<email211>/licenses" AutoRedirect=True -> VAR "l3_211"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_211"
   
   SET VAR "plan" "free"
   IF $"<l3_211>" Contains "Professional"
@@ -7830,7 +7830,7 @@ TRY
     CONTENT "username=$<email212>&password=$<password212>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_212"
-  HttpRequest GET $"<planBaseUrl>/users/$<email212>/licenses" AutoRedirect=True -> VAR "l3_212"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_212"
   
   SET VAR "plan" "free"
   IF $"<l3_212>" Contains "Professional"
@@ -7867,7 +7867,7 @@ TRY
     CONTENT "username=$<email213>&password=$<password213>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_213"
-  HttpRequest GET $"<planBaseUrl>/users/$<email213>/licenses" AutoRedirect=True -> VAR "l3_213"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_213"
   
   SET VAR "plan" "free"
   IF $"<l3_213>" Contains "Professional"
@@ -7904,7 +7904,7 @@ TRY
     CONTENT "username=$<email214>&password=$<password214>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_214"
-  HttpRequest GET $"<planBaseUrl>/users/$<email214>/licenses" AutoRedirect=True -> VAR "l3_214"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_214"
   
   SET VAR "plan" "free"
   IF $"<l3_214>" Contains "Professional"
@@ -7941,7 +7941,7 @@ TRY
     CONTENT "username=$<email215>&password=$<password215>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_215"
-  HttpRequest GET $"<planBaseUrl>/users/$<email215>/licenses" AutoRedirect=True -> VAR "l3_215"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_215"
   
   SET VAR "plan" "free"
   IF $"<l3_215>" Contains "Professional"
@@ -7978,7 +7978,7 @@ TRY
     CONTENT "username=$<email216>&password=$<password216>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_216"
-  HttpRequest GET $"<planBaseUrl>/users/$<email216>/licenses" AutoRedirect=True -> VAR "l3_216"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_216"
   
   SET VAR "plan" "free"
   IF $"<l3_216>" Contains "Professional"
@@ -8015,7 +8015,7 @@ TRY
     CONTENT "username=$<email217>&password=$<password217>&action=default"
     CONTENTTYPE "application/x-www-form-urlencoded"
     -> VAR "l2_217"
-  HttpRequest GET $"<planBaseUrl>/users/$<email217>/licenses" AutoRedirect=True -> VAR "l3_217"
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "l3_217"
   
   SET VAR "plan" "free"
   IF $"<l3_217>" Contains "Professional"
@@ -8045,5 +8045,8 @@ SLEEP 0.1
 
 PRINT ""
 PRINT "============================================================"
-PRINT "EXTRACTION COMPLETE - Results saved to extracted_plans.csv"
+PRINT "EXTRACTION COMPLETE"
 PRINT "============================================================"
+PRINT "Results saved to: extracted_plans.csv"
+PRINT "============================================================"
+
