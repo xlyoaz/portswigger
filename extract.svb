@@ -6,7 +6,7 @@ PRINT "Loaded accounts" White
 
 SET VAR "counter" "0" Integer
 
-ConstantString "Configs\test_debug.txt" -> VAR "debugFile"
+ConstantString "test_debug.txt" -> VAR "debugFile"
 ConstantString "Debug log started" -> VAR "logEntry"
 FileWriteString $"<debugFile>" $"<logEntry>"
 
@@ -74,4 +74,4 @@ FOREACH $"<accounts>" -> VAR "account"
 
 ENDFOREACH
 
-PRINT "Done - check Configs\test_debug.txt" White
+PRINT "Done - check test_debug.txt in SilverBullet folder" White
