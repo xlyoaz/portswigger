@@ -1,0 +1,35 @@
+## Simple test - just read file and count lines
+
+BEGIN SCRIPT CSharp StartMethod="Main" ClassName="FileTest" NameSpace="SB" IsStatic=True "log.txt"
+using System;
+using System.IO;
+
+namespace SB {
+    public class FileTest {
+        public static string Main(string credFile) {
+            try {
+                if (!File.Exists(credFile)) {
+                    return "FILE_NOT_FOUND";
+                }
+
+                int lineCount = 0;
+                using (var reader = new StreamReader(credFile)) {
+                    string line;
+                    while ((line = reader.ReadLine()) != null) {
+                        lineCount++;
+                        if (lineCount <= 5) {
+                            Console.WriteLine($"Line {lineCount}: {line}");
+                        }
+                    }
+                }
+
+                return $"SUCCESS: {lineCount} lines";
+            } catch (Exception ex) {
+                return "ERROR: " + ex.Message;
+            }
+        }
+    }
+}
+END SCRIPT -> VARS "result"
+
+PRINT "Result: <result>"
