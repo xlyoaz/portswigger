@@ -1,0 +1,57 @@
+## Debug: What does the login page actually return?
+
+BEGIN SCRIPT CSharp StartMethod="Main" ClassName="DebugLogin" NameSpace="SB" IsStatic=True
+using System;
+using System.Net;
+using System.Net.Http;
+using System.Text;
+
+namespace SB {
+    public class DebugLogin {
+        public static string Main() {
+            try {
+                var handler = new HttpClientHandler {
+                    UseCookies = false,
+                    AllowAutoRedirect = false  // DON'T follow redirects - see actual response
+                };
+
+                using (var client = new HttpClient(handler)) {
+                    client.Timeout = TimeSpan.FromSeconds(10);
+                    client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
+
+                    var req = new HttpRequestMessage(HttpMethod.Get, "https://login.portswigger.net/u/login");
+                    var res = client.SendAsync(req).GetAwaiter().GetResult();
+
+                    var body = res.Content != null ? res.Content.ReadAsStringAsync().GetAwaiter().GetResult() : "";
+
+                    var result = new StringBuilder();
+                    result.AppendLine("=== RESPONSE DEBUG ===");
+                    result.AppendLine("Status: " + (int)res.StatusCode);
+                    result.AppendLine("Location Header: " + (res.Headers.Location?.ToString() ?? "NONE"));
+                    result.AppendLine("Body Length: " + body.Length);
+                    result.AppendLine("");
+                    result.AppendLine("=== FIRST 2000 CHARS ===");
+                    result.AppendLine(body.Length > 2000 ? body.Substring(0, 2000) : body);
+                    result.AppendLine("");
+                    result.AppendLine("=== SEARCHES ===");
+                    result.AppendLine("Has 'state': " + body.Contains("state"));
+                    result.AppendLine("Has 'error': " + body.Contains("error"));
+                    result.AppendLine("Has 'form': " + body.Contains("<form"));
+                    result.AppendLine("Has 'login': " + body.Contains("login"));
+                    result.AppendLine("Has 'authorize': " + body.Contains("authorize"));
+                    result.AppendLine("Has 'client_id': " + body.Contains("client_id"));
+
+                    return result.ToString();
+                }
+            } catch (Exception ex) {
+                return "EXCEPTION: " + ex.Message + "\n" + ex.StackTrace;
+            }
+        }
+    }
+}
+END SCRIPT -> VARS "debugResult"
+
+PRINT "<debugResult>"
+FileWrite "debug_login_response.txt" "<debugResult>"
+PRINT ""
+PRINT "Saved to: debug_login_response.txt"
