@@ -85,6 +85,9 @@ def read_credentials(filename):
                 if line and not line.startswith('#'):
                     if ':' in line:
                         creds.append(line)
+        if not creds:
+            print(f"ERROR: No credentials found in {filename}")
+            sys.exit(1)
         return creds
     except FileNotFoundError:
         print(f"ERROR: File not found: {filename}")
@@ -158,7 +161,8 @@ def main():
     print(f"Total checked: {len(creds)}")
     print(f"Valid: {len(valid_creds)}")
     print(f"Invalid: {len(invalid_creds)}")
-    print(f"Success rate: {len(valid_creds)*100/len(creds):.1f}%")
+    if len(creds) > 0:
+        print(f"Success rate: {len(valid_creds)*100/len(creds):.1f}%")
     print("============================================================")
 
 if __name__ == "__main__":
