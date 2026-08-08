@@ -1,0 +1,188 @@
+## Intelx Search Automation with Capmonster CAPTCHA
+## Login + Search portswigger.net in leak databases
+## Authorization: ROE-2026-PSW-042-V5
+
+SET VAR "email" "glorybpilled@gmail.com"
+SET VAR "password" "Xlyoaz60863131.."
+SET VAR "capmonsterKey" "400eae8915824544df0ca7ac65564ee8"
+SET VAR "searchQuery" "portswigger.net"
+SET VAR "databases" "leaks.private.general,leaks.private.comb,leaks.logs,leaks.public.general"
+SET VAR "outputFile" "intelx_results.html"
+
+PRINT "[*] Intelx Search Automation"
+PRINT "[*] Target: <searchQuery>"
+PRINT "[*] Databases: <databases>"
+PRINT ""
+
+BEGIN SCRIPT CSharp StartMethod="Main" ClassName="IntelxSearch" NameSpace="SB" IsStatic=True "<email>" "<password>" "<capmonsterKey>" "<searchQuery>" "<databases>"
+using System;
+using System.Net;
+using System.Net.Http;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace SB {
+    public class IntelxSearch {
+
+        private static string SolveRecaptchaV2(string siteKey, string pageUrl, string capmonsterKey) {
+            try {
+                var handler = new HttpClientHandler { UseCookies = false };
+                using (var client = new HttpClient(handler)) {
+                    // Create task in capmonster
+                    var taskRequest = new StringContent(
+                        $"{{\"clientKey\":\"{capmonsterKey}\",\"task\":{{\"type\":\"NoCaptchaTaskProxyless\",\"websiteURL\":\"{pageUrl}\",\"websiteKey\":\"{siteKey}\"}}}}",
+                        System.Text.Encoding.UTF8,
+                        "application/json"
+                    );
+
+                    var taskResponse = client.PostAsync("https://api.capmonster.cloud/createTask", taskRequest).GetAwaiter().GetResult();
+                    var taskBody = taskResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+
+                    var taskIdMatch = Regex.Match(taskBody, "\"taskId\":(\\d+)");
+                    if (!taskIdMatch.Success) return null;
+
+                    string taskId = taskIdMatch.Groups[1].Value;
+
+                    // Poll for result
+                    for (int i = 0; i < 30; i++) {
+                        System.Threading.Thread.Sleep(1000);
+
+                        var resultRequest = new StringContent(
+                            $"{{\"clientKey\":\"{capmonsterKey}\",\"taskId\":{taskId}}}",
+                            System.Text.Encoding.UTF8,
+                            "application/json"
+                        );
+
+                        var resultResponse = client.PostAsync("https://api.capmonster.cloud/getTaskResult", resultRequest).GetAwaiter().GetResult();
+                        var resultBody = resultResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+
+                        if (resultBody.Contains("\"gRecaptchaResponse\"")) {
+                            var tokenMatch = Regex.Match(resultBody, "\"gRecaptchaResponse\":\"([^\"]+)\"");
+                            if (tokenMatch.Success) {
+                                return tokenMatch.Groups[1].Value;
+                            }
+                        }
+                    }
+
+                    return null;
+                }
+            } catch (Exception ex) {
+                Console.WriteLine("Captcha error: " + ex.Message);
+                return null;
+            }
+        }
+
+        public static string Main(string email, string password, string capmonsterKey, string searchQuery, string databases) {
+            try {
+                var handler = new HttpClientHandler {
+                    UseCookies = false,
+                    AllowAutoRedirect = true
+                };
+
+                using (var client = new HttpClient(handler)) {
+                    client.Timeout = TimeSpan.FromSeconds(30);
+                    client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36");
+
+                    var cookies = new Dictionary<string, string>();
+
+                    void UpdateCookies(HttpResponseMessage response) {
+                        if (response.Headers.TryGetValues("Set-Cookie", out var setCookies)) {
+                            foreach (var c in setCookies) {
+                                var parts = c.Split(';')[0].Split(new[] { '=' }, 2);
+                                if (parts.Length == 2) {
+                                    cookies[parts[0]] = parts[1];
+                                }
+                            }
+                        }
+                    }
+
+                    string GetCookieString() {
+                        return string.Join("; ", cookies.Select(kv => kv.Key + "=" + kv.Value));
+                    }
+
+                    // Step 1: GET login page
+                    Console.WriteLine("Step 1: Fetching login page...");
+                    var loginPageReq = new HttpRequestMessage(HttpMethod.Get, "https://intelx.io/account/login");
+                    var cookieStr = GetCookieString();
+                    if (!string.IsNullOrEmpty(cookieStr)) loginPageReq.Headers.Add("Cookie", cookieStr);
+
+                    var loginPageRes = client.SendAsync(loginPageReq).GetAwaiter().GetResult();
+                    var loginPageBody = loginPageRes.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                    UpdateCookies(loginPageRes);
+
+                    // Check for CAPTCHA
+                    var captchaMatch = Regex.Match(loginPageBody, "data-sitekey=\"([^\"]+)\"");
+                    string captchaToken = null;
+
+                    if (captchaMatch.Success) {
+                        Console.WriteLine("Step 2: Solving CAPTCHA with Capmonster...");
+                        string siteKey = captchaMatch.Groups[1].Value;
+                        captchaToken = SolveRecaptchaV2(siteKey, "https://intelx.io/account/login", capmonsterKey);
+
+                        if (string.IsNullOrEmpty(captchaToken)) {
+                            return "ERROR: CAPTCHA solving failed";
+                        }
+                        Console.WriteLine("✓ CAPTCHA solved");
+                    }
+
+                    // Step 3: POST login
+                    Console.WriteLine("Step 3: Logging in...");
+                    var loginData = new List<KeyValuePair<string, string>> {
+                        new KeyValuePair<string, string>("email", email),
+                        new KeyValuePair<string, string>("password", password)
+                    };
+
+                    if (!string.IsNullOrEmpty(captchaToken)) {
+                        loginData.Add(new KeyValuePair<string, string>("g-recaptcha-response", captchaToken));
+                    }
+
+                    var loginPostReq = new HttpRequestMessage(HttpMethod.Post, "https://intelx.io/account/login");
+                    loginPostReq.Content = new FormUrlEncodedContent(loginData);
+                    cookieStr = GetCookieString();
+                    if (!string.IsNullOrEmpty(cookieStr)) loginPostReq.Headers.Add("Cookie", cookieStr);
+
+                    var loginRes = client.SendAsync(loginPostReq).GetAwaiter().GetResult();
+                    var loginBody = loginRes.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                    UpdateCookies(loginRes);
+
+                    if (loginBody.Contains("error") || loginBody.Contains("Invalid")) {
+                        return "ERROR: Login failed";
+                    }
+
+                    Console.WriteLine("✓ Login successful");
+
+                    // Step 4: Search
+                    Console.WriteLine("Step 4: Searching...");
+                    string searchUrl = $"https://intelx.io/?s={Uri.EscapeDataString(searchQuery)}&b={Uri.EscapeDataString(databases)}";
+
+                    var searchReq = new HttpRequestMessage(HttpMethod.Get, searchUrl);
+                    cookieStr = GetCookieString();
+                    if (!string.IsNullOrEmpty(cookieStr)) searchReq.Headers.Add("Cookie", cookieStr);
+
+                    var searchRes = client.SendAsync(searchReq).GetAwaiter().GetResult();
+                    var searchBody = searchRes.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+
+                    Console.WriteLine("✓ Search completed");
+                    return searchBody;
+                }
+            } catch (Exception ex) {
+                return "ERROR: " + ex.Message;
+            }
+        }
+    }
+}
+END SCRIPT -> VARS "result"
+
+IF "<result>" Contains "ERROR"
+  PRINT "❌ Error: <result>"
+ELSE
+  FileWrite <outputFile> "<result>"
+  PRINT "✓ Results saved to: <outputFile>"
+ENDIF
+
+PRINT ""
+PRINT "============================================================"
+PRINT "SEARCH COMPLETE"
+PRINT "============================================================"
