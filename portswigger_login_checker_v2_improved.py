@@ -31,7 +31,12 @@ class PortSwiggerLoginCheckerV2:
     ]
 
     # Rotating proxy list (add your proxies here)
-    PROXIES = []  # Leave empty if no proxies, or add: ["http://proxy1:port", "http://proxy2:port"]
+    PROXIES = [
+        "http://myagentyltd:Kb5xW8vW2B@66.248.146.48:50100",
+        "http://myagentyltd:Kb5xW8vW2B@208.53.9.5:50100",
+        "http://myagentyltd:Kb5xW8vW2B@81.253.122.7:50100",
+        "http://myagentyltd:Kb5xW8vW2B@23.26.238.205:50100",
+    ]
 
     def __init__(self, rate_limit: float = 0.5, debug: bool = False, use_proxies: bool = False):
         """
@@ -453,19 +458,13 @@ def main():
     """Main entry point."""
     # Configure here
     debug_mode = True
-    use_rotating_proxies = False  # Set to True if PROXIES list is populated
+    use_rotating_proxies = True  # Proxies are configured below
 
     checker = PortSwiggerLoginCheckerV2(
-        rate_limit=0.5,  # Slower = safer (2 req/sec)
+        rate_limit=1.0,  # 1 second = 1 req/sec (safe with WAF)
         debug=debug_mode,
         use_proxies=use_rotating_proxies
     )
-
-    # If you have proxies, add them like this:
-    # checker.PROXIES = [
-    #     "http://proxy1.com:8080",
-    #     "http://proxy2.com:8080",
-    # ]
 
     # Read credentials
     log_file = "log.txt"
