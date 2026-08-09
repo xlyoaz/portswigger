@@ -21,14 +21,26 @@ class PortSwiggerChecker:
     def __init__(self):
         self.session = requests.Session()
         self.session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept-Encoding': 'gzip, deflate',
+            'Connection': 'keep-alive',
         })
         self.session.timeout = 30
 
-    def extract_state(self, html):
-        """Extract state parameter from login form"""
-        match = re.search(r'name="state" value="([^"]+)"', html)
-        return match.group(1) if match else None
+    def extract_form_fields(self, html):
+        """Extract all form fields from login form"""
+        fields = {}
+        for match in re.finditer(r'<input[^>]*>', html):
+            input_tag = match.group(0)
+            name_match = re.search(r'name=["\']?([^"\'>\s]+)', input_tag, re.IGNORECASE)
+            if name_match:
+                name = name_match.group(1)
+                value_match = re.search(r'value=["\']?([^"\'>\s]*)', input_tag, re.IGNORECASE)
+                value = value_match.group(1) if value_match else ""
+                fields[name] = value
+        return fields
 
     def check_login(self, email, password):
         """Check if credentials are valid"""
@@ -38,20 +50,21 @@ class PortSwiggerChecker:
             if resp1.status_code != 200:
                 return False, "login_page_error"
 
-            # Extract state
-            state = self.extract_state(resp1.text)
-            if not state:
-                return False, "no_state"
+            # Extract all form fields
+            form_fields = self.extract_form_fields(resp1.text)
+            if not form_fields:
+                return False, "no_form_fields"
+
+            # Update with credentials
+            form_fields['username'] = email
+            form_fields['password'] = password
 
             # POST credentials
-            post_data = {
-                'state': state,
-                'username': email,
-                'password': password,
-                'action': 'default'
-            }
+            resp2 = self.session.post(LOGIN_POST_URL, data=form_fields, timeout=30, allow_redirects=True)
 
-            resp2 = self.session.post(LOGIN_POST_URL, data=post_data, timeout=30, allow_redirects=True)
+            # Check HTTP status
+            if resp2.status_code >= 400:
+                return False, f"http_{resp2.status_code}"
 
             # Check if login failed
             if "Wrong email or password" in resp2.text or "Invalid email or password" in resp2.text:
