@@ -214,7 +214,7 @@ class PortSwiggerLoginCheckerV2:
 
         session = self._create_session()
         headers = self._get_random_headers()
-        max_retries = 2
+        max_retries = 1
         retry_count = 0
 
         while retry_count < max_retries:
@@ -234,7 +234,7 @@ class PortSwiggerLoginCheckerV2:
                 init_response = session.get(
                     login_url,
                     headers=headers,
-                    timeout=15,
+                    timeout=60,
                     allow_redirects=True,
                     verify=True
                 )
@@ -297,7 +297,7 @@ class PortSwiggerLoginCheckerV2:
                     login_url,
                     data=payload,
                     headers=headers_post,
-                    timeout=15,
+                    timeout=60,
                     allow_redirects=False,
                     verify=True
                 )
@@ -459,7 +459,7 @@ def main():
     use_rotating_proxies = True  # Proxies are configured below
 
     checker = PortSwiggerLoginCheckerV2(
-        rate_limit=1.0,  # 1 second = 1 req/sec (safe with WAF)
+        rate_limit=2.0,  # 2 seconds = 0.5 req/sec (safe with slow proxies)
         debug=debug_mode,
         use_proxies=use_rotating_proxies
     )
