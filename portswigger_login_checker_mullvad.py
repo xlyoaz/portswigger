@@ -55,16 +55,35 @@ class PortSwiggerMullvadChecker:
             if self.debug:
                 print("[DEBUG] Rotating Mullvad VPN...")
 
-            # Disconnect
+            # Force disconnect first
             subprocess.run(["mullvad", "disconnect"], capture_output=True, timeout=10)
-            time.sleep(1)
-
-            # Connect with random location
-            subprocess.run(["mullvad", "connect"], capture_output=True, timeout=30)
             time.sleep(2)
 
-            # Get current IP
-            self.current_ip = self._get_current_ip()
+            # Wait for full disconnect
+            for i in range(5):
+                status_result = subprocess.run(["mullvad", "status"], capture_output=True, text=True, timeout=5)
+                if "disconnected" in status_result.stdout.lower():
+                    break
+                time.sleep(1)
+
+            # Now reconnect (forces new location/IP)
+            subprocess.run(["mullvad", "connect"], capture_output=True, timeout=30)
+            time.sleep(3)  # Wait for connection to establish
+
+            # Verify connected
+            for i in range(5):
+                status_result = subprocess.run(["mullvad", "status"], capture_output=True, text=True, timeout=5)
+                if "connected" in status_result.stdout.lower():
+                    break
+                time.sleep(1)
+
+            # Get current IP (try multiple times)
+            for attempt in range(3):
+                self.current_ip = self._get_current_ip()
+                if self.current_ip:
+                    break
+                time.sleep(1)
+
             if self.debug:
                 print(f"[DEBUG] ✓ New IP: {self.current_ip}")
 
@@ -309,7 +328,7 @@ def main():
     use_mullvad = True  # Use Mullvad VPN
 
     checker = PortSwiggerMullvadChecker(
-        rate_limit=3.0,  # 0.33 req/sec (very safe)
+        rate_limit=1.0,  # 1 req/sec (Mullvad handles rotation)
         debug=debug_mode,
         use_mullvad=use_mullvad
     )
