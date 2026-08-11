@@ -1,0 +1,51 @@
+## Test login WITHOUT following redirects to see what's actually required
+## Disable AutoRedirect to see error page details
+
+SET VAR "baseUrl" "https://login.portswigger.net"
+
+PRINT "[*] Testing login page WITHOUT following redirects"
+PRINT ""
+
+PRINT "Step 1: GET /u/login WITHOUT AutoRedirect..."
+HttpRequest GET $"<baseUrl>/u/login" -> VAR "response1"
+PRINT "✓ Response received"
+PRINT ""
+
+PRINT "Step 2: Saving raw response to see headers/redirects..."
+FileWrite "test_login_raw.html" $"<response1>"
+PRINT "✓ Saved to: test_login_raw.html"
+PRINT ""
+
+PRINT "Step 3: Checking response content..."
+IF $"<response1>" Contains "error"
+  PRINT "✓ Response contains 'error'"
+ENDIF
+
+IF $"<response1>" Contains "client_id"
+  PRINT "✓ Response mentions 'client_id'"
+ENDIF
+
+IF $"<response1>" Contains "location"
+  PRINT "✓ Response contains 'location' (redirect header)"
+ENDIF
+
+PRINT ""
+PRINT "Step 4: Trying common OAuth2 client IDs..."
+PRINT "Attempting common patterns..."
+PRINT ""
+
+SET VAR "testUrls" "portswigger-web|portswigger|web|app"
+PRINT "Common client_id patterns: $<testUrls>"
+PRINT ""
+
+PRINT "Testing with explicit client_id parameter..."
+HttpRequest GET $"<baseUrl>/u/login?client_id=portswigger" -> VAR "response2"
+FileWrite "test_login_with_clientid.html" $"<response2>"
+PRINT "✓ Saved to: test_login_with_clientid.html"
+PRINT ""
+
+PRINT "============================================================"
+PRINT "Check these files to analyze:"
+PRINT "- test_login_raw.html (original response)"
+PRINT "- test_login_with_clientid.html (with client_id parameter)"
+PRINT "============================================================"

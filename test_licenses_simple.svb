@@ -1,0 +1,46 @@
+## Simple test - no error handling to see actual errors
+## Test just one account with licenses page
+
+SET VAR "baseUrl" "https://login.portswigger.net"
+SET VAR "planBaseUrl" "https://portswigger.net"
+SET VAR "email" "glorywpill@gmail.com"
+SET VAR "password" "Xlyoaz60863131.."
+
+PRINT "[*] Testing licenses page with glorywpill account"
+PRINT ""
+
+PRINT "Step 1: GET login page..."
+HttpRequest GET $"<baseUrl>/u/login" AutoRedirect=True -> VAR "loginPage"
+PRINT "✓ Login page fetched"
+FileWrite "test_login_page.html" $"<loginPage>"
+PRINT ""
+
+PRINT "Step 2: POST credentials..."
+SET VAR "postdata" "username=$<email>&password=$<password>&action=default"
+PRINT "POST: $<postdata>"
+HttpRequest POST $"<baseUrl>/u/login" AutoRedirect=True
+  CONTENT $"<postdata>"
+  CONTENTTYPE "application/x-www-form-urlencoded"
+  -> VAR "postResponse"
+PRINT "✓ POST completed"
+FileWrite "test_post_response.html" $"<postResponse>"
+PRINT ""
+
+PRINT "Step 3: GET licenses page..."
+HttpRequest GET $"<planBaseUrl>/users/youraccount/licenses" AutoRedirect=True -> VAR "licensesPage"
+PRINT "✓ Licenses page fetched"
+FileWrite "test_licenses_page.html" $"<licensesPage>"
+PRINT ""
+
+PRINT "Step 4: Checking licenses page content..."
+IF $"<licensesPage>" Contains "You do not have any subscriptions"
+  PRINT "Result: FREE account (has 'no subscriptions' message)"
+ELSE
+  PRINT "Result: PAID account (no 'subscriptions' message)"
+ENDIF
+
+PRINT ""
+PRINT "Saved files:"
+PRINT "- test_login_page.html"
+PRINT "- test_post_response.html"
+PRINT "- test_licenses_page.html"

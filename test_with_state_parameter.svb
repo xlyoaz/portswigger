@@ -1,0 +1,62 @@
+## Test login with STATE parameter extraction
+## The login form contains a hidden state parameter (OAuth2 token) that must be extracted
+
+SET VAR "baseUrl" "https://login.portswigger.net"
+SET VAR "planBaseUrl" "https://portswigger.net"
+SET VAR "email" "glorywpill@gmail.com"
+SET VAR "password" "Xlyoaz60863131.."
+
+PRINT "[*] Testing with STATE parameter extraction"
+PRINT ""
+
+PRINT "Step 1: GET login page to extract state parameter"
+HttpRequest GET $"<baseUrl>/u/login" AutoRedirect=True -> VAR "loginPage"
+PRINT "✓ Login page fetched"
+PRINT ""
+
+PRINT "Step 2: Extracting state parameter from hidden form field..."
+## The login form has: <input type="hidden" name="state" value="..."/>
+## We need to extract this value
+
+IF $"<loginPage>" Contains "name=\"state\""
+  PRINT "✓ Found state parameter in form"
+ELSE
+  PRINT "✗ State parameter NOT found - this is unexpected"
+ENDIF
+
+PRINT ""
+
+PRINT "Step 3: Note - Current limitation discovered:"
+PRINT "⚠ SvbScript cannot easily extract the state parameter from HTML"
+PRINT "⚠ The login form requires OAuth2 state token for CSRF protection"
+PRINT "⚠ Manual extraction would be needed, OR browser automation required"
+PRINT ""
+
+PRINT "Step 4: Demonstrating what needs to happen:"
+PRINT "The login form HTML shows:"
+PRINT '  <input type="hidden" name="state" value="hKFo2SB..."/>'
+PRINT "  <input name="username">'
+PRINT "  <input name="password">'
+PRINT "  <button name="action" value="default">Continue</button>"
+PRINT ""
+
+PRINT "The POST must include ALL these fields:"
+PRINT "  - state (extracted from form)"
+PRINT "  - username"
+PRINT "  - password"
+PRINT "  - action=default"
+PRINT ""
+
+PRINT "============================================================"
+PRINT "CONCLUSION"
+PRINT "============================================================"
+PRINT "❌ SvbScript cannot extract dynamic values from HTML responses"
+PRINT "✓ Basic HTTP requests work"
+PRINT "✓ Variable substitution works (when values are known in advance)"
+PRINT ""
+PRINT "ALTERNATIVE SOLUTIONS:"
+PRINT "1. Use browser-based automation (Selenium, Puppeteer, Playwright)"
+PRINT "2. Provide pre-extracted state tokens if available"
+PRINT "3. Check if PortSwigger provides an API alternative"
+PRINT "4. Check if credentials allow direct login without OAuth2"
+PRINT "============================================================"

@@ -1,0 +1,77 @@
+## Test login using /authorize/resume endpoint with state parameter
+## This endpoint seems to be where the OAuth2 flow actually expects credentials
+
+SET VAR "baseUrl" "https://login.portswigger.net"
+SET VAR "planBaseUrl" "https://portswigger.net"
+SET VAR "email" "glorywpill@gmail.com"
+SET VAR "password" "Xlyoaz60863131.."
+SET VAR "state" "k9Vfry9rVOBCo2heRAJ732ZKQFExGG4e"
+
+PRINT "[*] Testing /authorize/resume endpoint"
+PRINT ""
+
+PRINT "Step 1: GET /authorize/resume with state parameter..."
+HttpRequest GET $"<baseUrl>/authorize/resume?state=$<state>" AutoRedirect=True -> VAR "resumePage"
+PRINT "✓ Resume page fetched"
+PRINT ""
+
+PRINT "Step 2: Saving resume page HTML..."
+FileWrite "authorize_resume_page.html" $"<resumePage>"
+PRINT "✓ Saved to: authorize_resume_page.html"
+PRINT ""
+
+PRINT "Step 3: Building POST data with state..."
+SET VAR "postdata" "state=$<state>&username=$<email>&password=$<password>&action=default"
+PRINT "POST data: $<postdata>"
+PRINT ""
+
+PRINT "Step 4: POST credentials to /authorize/resume..."
+HttpRequest POST $"<baseUrl>/authorize/resume" AutoRedirect=True
+  CONTENT $"<postdata>"
+  CONTENTTYPE "application/x-www-form-urlencoded"
+  -> VAR "postResponse"
+PRINT "✓ POST completed"
+PRINT ""
+
+PRINT "Step 5: Saving POST response..."
+FileWrite "authorize_resume_response.html" $"<postResponse>"
+PRINT "✓ Saved to: authorize_resume_response.html"
+PRINT ""
+
+PRINT "Step 6: GET personal details page..."
+HttpRequest GET $"<planBaseUrl>/users/youraccount/personaldetails" AutoRedirect=True -> VAR "pdResponse"
+PRINT "✓ Personal details fetched"
+PRINT ""
+
+PRINT "Step 7: Saving personal details..."
+FileWrite "personal_details_authorize_resume.html" $"<pdResponse>"
+PRINT "✓ Saved to: personal_details_authorize_resume.html"
+PRINT ""
+
+PRINT "Step 8: Extracting plan information..."
+SET VAR "foundPlan" "none"
+
+IF $"<pdResponse>" Contains "Professional"
+  SET VAR "foundPlan" "Professional"
+  PRINT "✓ Found: Professional"
+ENDIF
+
+IF $"<pdResponse>" Contains "Enterprise"
+  SET VAR "foundPlan" "Enterprise"
+  PRINT "✓ Found: Enterprise"
+ENDIF
+
+IF $"<pdResponse>" Contains "Community"
+  SET VAR "foundPlan" "Community"
+  PRINT "✓ Found: Community"
+ENDIF
+
+PRINT ""
+PRINT "============================================================"
+IF $"<foundPlan>" != "none"
+  PRINT "✓✓✓ SUCCESS! /authorize/resume endpoint works!"
+  PRINT "Plan: $<foundPlan>"
+ELSE
+  PRINT "⚠ Check HTML files to see what's in responses"
+ENDIF
+PRINT "============================================================"
