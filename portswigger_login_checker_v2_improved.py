@@ -34,8 +34,6 @@ class PortSwiggerLoginCheckerV2:
     PROXIES = [
         "http://myagentyltd:Kb5xW8vW2B@66.248.146.48:50100",
         "http://myagentyltd:Kb5xW8vW2B@208.53.9.5:50100",
-        "http://myagentyltd:Kb5xW8vW2B@81.253.122.7:50100",
-        "http://myagentyltd:Kb5xW8vW2B@23.26.238.205:50100",
     ]
 
     def __init__(self, rate_limit: float = 0.5, debug: bool = False, use_proxies: bool = False):
