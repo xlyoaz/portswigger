@@ -30,7 +30,7 @@ class PortSwiggerLoginCheckerV2:
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15",
     ]
 
-    # Rotating proxy list (add your proxies here)
+    # Rotating proxy list - ONLY 2 PROXIES
     PROXIES = [
         "http://myagentyltd:Kb5xW8vW2B@66.248.146.48:50100",
         "http://myagentyltd:Kb5xW8vW2B@208.53.9.5:50100",
@@ -54,17 +54,21 @@ class PortSwiggerLoginCheckerV2:
         self.error_count = 0
         self.success_count = 0
         self.last_ip = None
+        self.proxy_index = 0  # For sequential proxy rotation
 
     def _get_random_user_agent(self) -> str:
         """Get random user agent from pool."""
         return random.choice(self.USER_AGENTS)
 
     def _get_rotating_proxy(self) -> Optional[Dict]:
-        """Get rotating proxy configuration."""
+        """Get rotating proxy configuration - sequential rotation."""
         if not self.use_proxies or not self.PROXIES:
             return None
 
-        proxy_url = random.choice(self.PROXIES)
+        # Get current proxy and rotate to next
+        proxy_url = self.PROXIES[self.proxy_index]
+        self.proxy_index = (self.proxy_index + 1) % len(self.PROXIES)
+
         return {
             "http": proxy_url,
             "https": proxy_url
