@@ -4,7 +4,7 @@
 
 SET VAR "email" "glorybpilled@gmail.com"
 SET VAR "password" "Xlyoaz60863131.."
-SET VAR "capmonsterKey" "400eae8915824544df0ca7ac65564ee8"
+SET VAR "capmonsterKey" "YOUR_CAPMONSTER_KEY_HERE"
 SET VAR "searchQuery" "portswigger.net"
 SET VAR "databases" "leaks.private.general,leaks.private.comb,leaks.logs,leaks.public.general"
 SET VAR "outputFile" "intelx_results.html"
